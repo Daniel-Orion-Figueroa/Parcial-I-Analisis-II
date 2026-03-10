@@ -1,0 +1,5 @@
+export const LOAN_STATUS = {
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED'
+}

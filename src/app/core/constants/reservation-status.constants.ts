@@ -1,0 +1,5 @@
+export const RESERVATION_STATUS = {
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED'
+}
