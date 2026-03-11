@@ -1,1 +1,82 @@
-<p>loans-page works!</p>
+<div class="loans-page">
+  <header class="page-header">
+    <h1>Mis Préstamos</h1>
+    <p>Gestiona tus préstamos activos y historial</p>
+  </header>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onFilter()"
+        placeholder="Buscar por título o autor..."
+        class="search-input"
+      />
+    </div>
+    
+    <div class="filter-group">
+      <select [(ngModel)]="statusFilter" (change)="onFilter()" class="status-filter">
+        <option value="all">Todos los estados</option>
+        <option value="active">Activos</option>
+        <option value="overdue">Vencidos</option>
+        <option value="returned">Devueltos</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="loans-table-container">
+    @if (filteredLoans().length > 0) {
+      <table class="loans-table">
+        <thead>
+          <tr>
+            <th>Libro</th>
+            <th>Fecha de Préstamo</th>
+            <th>Fecha de Devolución</th>
+            <th>Estado</th>
+            <th>Renovaciones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (loan of filteredLoans(); track loan.id) {
+            <tr class="loan-row">
+              <td class="book-info">
+                <div class="book-title">{{ loan.bookTitle }}</div>
+                <div class="book-author">{{ loan.bookAuthor }}</div>
+              </td>
+              <td class="loan-date">{{ loan.loanDate }}</td>
+              <td class="due-date">{{ loan.dueDate }}</td>
+              <td>
+                <span class="status-badge" [class]="getStatusClass(loan.status)">
+                  {{ getStatusText(loan.status) }}
+                </span>
+              </td>
+              <td class="renewals">{{ loan.renewals }}</td>
+              <td class="actions">
+                @if (loan.status === 'active') {
+                  <button (click)="onRenewLoan(loan)" class="btn btn-renew">
+                    Renovar
+                  </button>
+                  <button (click)="onReturnLoan(loan)" class="btn btn-return">
+                    Devolver
+                  </button>
+                }
+                @if (loan.status === 'overdue') {
+                  <button (click)="onReturnLoan(loan)" class="btn btn-return">
+                    Devolver
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <div class="empty-state">
+        <h3>No se encontraron préstamos</h3>
+        <p>No tienes préstamos que coincidan con los filtros actuales</p>
+      </div>
+    }
+  </div>
+</div>

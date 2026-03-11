@@ -4,7 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./pages/books-list-page/books-list-page').then(m => m.BooksListPage)
+    loadComponent: () => import('./pages/loans-page/loans-page').then(m => m.LoansPage)
   }
 ];
 
@@ -12,4 +12,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class BooksRoutingModule {}
+export class LoansRoutingModule {}

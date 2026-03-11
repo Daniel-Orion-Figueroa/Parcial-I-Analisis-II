@@ -27,6 +27,12 @@ export const routes: Routes = [
         canActivate: [authGuard]
     },
     {
+        path: 'loans',
+        loadChildren: () =>
+        import('./features/loans/loans.module').then(m => m.LoansModule),
+        canActivate: [authGuard]
+    },
+    {
         path: 'admin',
         loadChildren: () =>
         import('./features/admin/admin.module').then(m => m.AdminModule),

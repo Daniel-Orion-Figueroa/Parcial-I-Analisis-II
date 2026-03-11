@@ -1,1 +1,57 @@
-<p>books-list-page works!</p>
+<div class="books-page">
+  <header class="page-header">
+    <h1>Catálogo de Libros</h1>
+    <p>Explora nuestra colección de libros disponibles</p>
+  </header>
+
+  <div class="search-section">
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      (keyup)="onSearch($event)"
+      placeholder="Buscar por título, autor o ISBN..."
+      class="search-input"
+    />
+  </div>
+
+  <div class="books-grid">
+    @for (book of filteredBooks(); track book.id) {
+      <div class="book-card">
+        <div class="book-cover">
+          <img [src]="book.coverImage || '/assets/default-book.jpg'" [alt]="book.title" />
+          @if (!book.available) {
+            <div class="book-badge">No disponible</div>
+          }
+        </div>
+        
+        <div class="book-info">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <p class="book-author">{{ book.author }}</p>
+          <p class="book-isbn">ISBN: {{ book.isbn }}</p>
+          
+          <div class="book-meta">
+            <span class="book-year">{{ book.year }}</span>
+            <span class="book-category">{{ book.category }}</span>
+          </div>
+        </div>
+        
+        <div class="book-actions">
+          <button 
+            class="btn btn-primary" 
+            [disabled]="!book.available"
+            (click)="onReserveBook(book)"
+          >
+            {{ book.available ? 'Reservar' : 'No disponible' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (filteredBooks().length === 0) {
+    <div class="empty-state">
+      <h3>No se encontraron libros</h3>
+      <p>Intenta con otros términos de búsqueda</p>
+    </div>
+  }
+</div>

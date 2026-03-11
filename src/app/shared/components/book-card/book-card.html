@@ -1,0 +1,23 @@
+<div class="book-card">
+  <div class="book-cover">
+    <img [src]="book?.coverImage || '/assets/default-book.jpg'" [alt]="book?.title || 'Book cover'" />
+    <div class="book-badge" *ngIf="book?.available === false">No disponible</div>
+  </div>
+  
+  <div class="book-info">
+    <h3 class="book-title">{{ book?.title || 'Sin título' }}</h3>
+    <p class="book-author">{{ book?.author || 'Autor desconocido' }}</p>
+    <p class="book-isbn">ISBN: {{ book?.isbn || 'N/A' }}</p>
+    
+    <div class="book-meta">
+      <span class="book-year">{{ book?.year || 'N/A' }}</span>
+      <span class="book-category">{{ book?.category || 'General' }}</span>
+    </div>
+  </div>
+  
+  <div class="book-actions" *ngIf="showActions">
+    <button class="btn btn-primary" [disabled]="!book?.available">
+      {{ book?.available ? 'Reservar' : 'No disponible' }}
+    </button>
+  </div>
+</div>
