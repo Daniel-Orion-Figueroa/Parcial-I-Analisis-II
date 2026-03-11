@@ -1,10 +1,49 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-login',
-  imports: [],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
   standalone: true
 })
-export class LoginComponent {}
+export class LoginComponent {
+  isLoading = signal(false);
+  showPassword = signal(false);
+  
+  loginForm: FormGroup;
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router
+  ) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  onSubmit(): void {
+    if (this.loginForm.valid) {
+      this.isLoading.set(true);
+      // TODO: Implementar login con AuthService
+      console.log('Login data:', this.loginForm.value);
+      
+      setTimeout(() => {
+        this.isLoading.set(false);
+        // Simulación de login exitoso
+        this.router.navigate(['/dashboard']);
+      }, 2000);
+    }
+  }
+
+  togglePassword(): void {
+    this.showPassword.set(!this.showPassword());
+  }
+
+  get email() { return this.loginForm.get('email'); }
+  get password() { return this.loginForm.get('password'); }
+}
