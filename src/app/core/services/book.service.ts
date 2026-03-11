@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
-import { environment } from '../../environments/environment';
-import { Book } from '../interfaces/book';
+import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints.constants';
+import { Book } from '../interfaces/book';
 
 @Injectable({
   providedIn: 'root'

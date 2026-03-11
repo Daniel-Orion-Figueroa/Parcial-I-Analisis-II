@@ -1,10 +1,16 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'availability',
+  name: 'availability'
 })
 export class AvailabilityPipe implements PipeTransform {
-  transform(value: unknown, ...args: unknown[]): unknown {
-    return null;
+
+  transform(availableAmount: number): string {
+
+    if (availableAmount > 0) {
+      return 'Disponible';
+    }
+
+    return 'No disponible';
   }
 }

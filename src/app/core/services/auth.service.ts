@@ -1,9 +1,9 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
 
+import { environment } from '../../../environments/environment';
 import { User } from '../../core/interfaces/user';
-import { environment } from '../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints.constants';
 
 @Injectable({
@@ -26,20 +26,32 @@ export class AuthService {
   }
 
   /**
+   * Verificar si estamos en navegador
+   */
+  private isBrowser(): boolean {
+    return typeof window !== 'undefined';
+  }
+
+  /**
    * Cargar sesión guardada (si existe)
    */
-  private loadStoredSession(): void {
+  private loadStoredSession() {
 
-    const user = localStorage.getItem('user');
+    if (!this.isBrowser()) {
+      return;
+    }
+
     const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+
+    if (token) {
+      this.tokenSubject.next(token);
+    }
 
     if (user) {
       this.userSubject.next(JSON.parse(user));
     }
 
-    if (token) {
-      this.tokenSubject.next(token);
-    }
   }
 
   /**
@@ -58,8 +70,13 @@ export class AuthService {
       .post<User>(`${this.apiUrl}${API_ENDPOINTS.AUTH.REGISTER}`, userData)
       .pipe(
         tap((user) => {
-          localStorage.setItem('user', JSON.stringify(user));
+
+          if (this.isBrowser()) {
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+
           this.userSubject.next(user);
+
         })
       );
   }
@@ -77,8 +94,10 @@ export class AuthService {
           const user = response.user;
           const token = response.token;
 
-          localStorage.setItem('user', JSON.stringify(user));
-          localStorage.setItem('token', token);
+          if (this.isBrowser()) {
+            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('token', token);
+          }
 
           this.userSubject.next(user);
           this.tokenSubject.next(token);
@@ -92,8 +111,10 @@ export class AuthService {
    */
   logout(): void {
 
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    if (this.isBrowser()) {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    }
 
     this.userSubject.next(null);
     this.tokenSubject.next(null);
@@ -113,4 +134,10 @@ export class AuthService {
     return this.userSubject.value;
   }
 
+  /**
+   * Obtener token actual
+   */
+  getCurrentToken(): string | null {
+    return this.tokenSubject.value;
+  }
 }
