@@ -1,3 +1,39 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [];
+import { authGuard } from './core/guards/auth-guard';
+import { adminGuard } from './core/guards/admin-guard';
+
+export const routes: Routes = [
+    {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+    },
+    {
+        path: 'auth',
+        loadChildren: () =>
+        import('./features/auth/auth.module').then(m => m.AuthModule)
+    },
+    {
+        path: 'dashboard',
+        loadChildren: () =>
+        import('./features/dashboard/dashboard.module').then(m => m.DashboardModule),
+        canActivate: [authGuard]
+    },
+    {
+        path: 'books',
+        loadChildren: () =>
+        import('./features/books/books.module').then(m => m.BooksModule),
+        canActivate: [authGuard]
+    },
+    {
+        path: 'admin',
+        loadChildren: () =>
+        import('./features/admin/admin.module').then(m => m.AdminModule),
+        canActivate: [authGuard, adminGuard]
+    },
+    {
+        path: '**',
+        redirectTo: 'dashboard'
+    }
+]

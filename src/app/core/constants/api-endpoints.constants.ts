@@ -21,4 +21,4 @@ export const API_ENDPOINTS = {
     GET_BY_USER: '/loans/user'
     }
 
-};
+}
