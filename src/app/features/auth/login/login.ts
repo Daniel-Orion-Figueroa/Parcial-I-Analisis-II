@@ -29,14 +29,27 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.isLoading.set(true);
-      // TODO: Implementar login con AuthService
-      console.log('Login data:', this.loginForm.value);
+      const { email, password } = this.loginForm.value;
       
+      console.log('Login data:', { email, password });
+      
+      // Simulación de login exitoso temporal
       setTimeout(() => {
         this.isLoading.set(false);
-        // Simulación de login exitoso
+        // Guardar sesión simulada
+        localStorage.setItem('token', 'mock-token');
+        localStorage.setItem('user', JSON.stringify({
+          id: 1,
+          name: 'Daniel',
+          email: email,
+          role: 'user'
+        }));
+        
+        // Navegar al dashboard
         this.router.navigate(['/dashboard']);
-      }, 2000);
+      }, 1000);
+    } else {
+      console.log('Formulario inválido:', this.loginForm);
     }
   }
 

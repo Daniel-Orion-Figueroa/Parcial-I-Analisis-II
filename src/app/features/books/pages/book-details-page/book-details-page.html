@@ -1,1 +1,89 @@
-<p>book-details-page works!</p>
+@if (loading()) {
+  <div class="loading-container">
+    <app-loader size="large" color="primary" [showText]="true" text="Cargando detalles del libro..."></app-loader>
+  </div>
+} @else if (book()) {
+  <div class="book-details-page">
+    <div class="book-details-container">
+      <div class="book-cover-section">
+        <app-book-card [book]="book()" [showActions]="false" [compact]="false"></app-book-card>
+      </div>
+      
+      <div class="book-info-section">
+        <div class="book-header">
+          <h1 class="book-title">{{ book().title }}</h1>
+          <div class="book-meta">
+            <span class="author">por {{ book().author }}</span>
+            <span class="rating">⭐ {{ book().rating }} ({{ book().reviews }} reseñas)</span>
+          </div>
+        </div>
+        
+        <div class="book-description">
+          <h3>Descripción</h3>
+          <p>{{ book().description }}</p>
+        </div>
+        
+        <div class="book-details-grid">
+          <div class="detail-item">
+            <span class="label">ISBN:</span>
+            <span class="value">{{ book().isbn }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Año:</span>
+            <span class="value">{{ book().year }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Categoría:</span>
+            <span class="value category-badge">{{ book().category }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Editorial:</span>
+            <span class="value">{{ book().publisher }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Páginas:</span>
+            <span class="value">{{ book().pages }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Idioma:</span>
+            <span class="value">{{ book().language }}</span>
+          </div>
+        </div>
+        
+        <div class="book-actions">
+          @if (book().availability === 'available') {
+            <button class="btn btn-primary btn-large" (click)="onReserveBook(book())">
+              📚 Reservar Libro
+            </button>
+          } @else if (book().availability === 'borrowed') {
+            <button disabled class="btn btn-disabled btn-large">
+              📚 No Disponible
+            </button>
+          } @else if (book().availability === 'reserved') {
+            <button disabled class="btn btn-disabled btn-large">
+              📋 Ya Reservado
+            </button>
+          }
+          
+          <button class="btn btn-outline" (click)="onGoBack()">
+            ← Volver al Catálogo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showConfirmDialog()) {
+  <app-confirm-dialog
+    [isOpen]="showConfirmDialog()"
+    title="Confirmar Reserva"
+    message="¿Estás seguro de que quieres reservar este libro? Te notificaremos cuando esté disponible."
+    type="info"
+    confirmText="Confirmar"
+    cancelText="Cancelar"
+    (confirm)="onConfirmReservation()"
+    (cancel)="onCancelReservation()"
+    (close)="onCancelReservation()">
+  </app-confirm-dialog>
+}

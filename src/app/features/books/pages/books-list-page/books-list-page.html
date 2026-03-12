@@ -5,53 +5,33 @@
   </header>
 
   <div class="search-section">
-    <input
-      type="text"
-      [(ngModel)]="searchTerm"
-      (keyup)="onSearch($event)"
+    <app-search-bar 
       placeholder="Buscar por título, autor o ISBN..."
-      class="search-input"
-    />
+      [filters]="['Ficción', 'Realismo Mágico', 'Ciencia Ficción', 'Fantasía', 'Historia']"
+      [showFilters]="true"
+      (search)="onSearch($event)">
+    </app-search-bar>
   </div>
 
   <div class="books-grid">
     @for (book of filteredBooks(); track book.id) {
-      <div class="book-card">
-        <div class="book-cover">
-          <img [src]="book.coverImage || '/assets/default-book.jpg'" [alt]="book.title" />
-          @if (!book.available) {
-            <div class="book-badge">No disponible</div>
-          }
-        </div>
-        
-        <div class="book-info">
-          <h3 class="book-title">{{ book.title }}</h3>
-          <p class="book-author">{{ book.author }}</p>
-          <p class="book-isbn">ISBN: {{ book.isbn }}</p>
-          
-          <div class="book-meta">
-            <span class="book-year">{{ book.year }}</span>
-            <span class="book-category">{{ book.category }}</span>
-          </div>
-        </div>
-        
-        <div class="book-actions">
-          <button 
-            class="btn btn-primary" 
-            [disabled]="!book.available"
-            (click)="onReserveBook(book)"
-          >
-            {{ book.available ? 'Reservar' : 'No disponible' }}
-          </button>
-        </div>
-      </div>
+      <app-book-card 
+        [book]="book" 
+        [showActions]="true"
+        (reserve)="onReserveBook($event)"
+        (viewDetails)="onViewBookDetails($event)">
+      </app-book-card>
     }
   </div>
 
   @if (filteredBooks().length === 0) {
-    <div class="empty-state">
-      <h3>No se encontraron libros</h3>
-      <p>Intenta con otros términos de búsqueda</p>
-    </div>
+    <app-empty-state 
+      icon="📚"
+      title="No se encontraron libros"
+      message="Intenta con otros términos de búsqueda o filtros"
+      [showAction]="true"
+      actionText="Limpiar búsqueda"
+      (action)="onSearch({ term: '', filter: '' })">
+    </app-empty-state>
   }
 </div>

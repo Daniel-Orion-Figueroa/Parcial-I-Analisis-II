@@ -1,1 +1,75 @@
-<p>dashboard-page works!</p>
+<div class="dashboard">
+  <header class="dashboard-header">
+    <div class="welcome-section">
+      <h1>¡Bienvenido, {{ userName() }}! 👋</h1>
+      <p>Gestiona tus préstamos y explora nuestro catálogo</p>
+    </div>
+  </header>
+
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card stat-active">
+        <div class="stat-icon">📚</div>
+        <div class="stat-info">
+          <h3>{{ activeLoans() }}</h3>
+          <p>Préstamos Activos</p>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-overdue">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-info">
+          <h3>{{ overdueLoans() }}</h3>
+          <p>Préstamos Vencidos</p>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-reserved">
+        <div class="stat-icon">📋</div>
+        <div class="stat-info">
+          <h3>{{ reservedBooks() }}</h3>
+          <p>Libros Reservados</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="actions-section">
+    <h2>Acciones Rápidas</h2>
+    <div class="actions-grid">
+      <button (click)="navigateToBooks()" class="action-card action-books">
+        <div class="action-icon">📖</div>
+        <div class="action-content">
+          <h3>Explorar Libros</h3>
+          <p>Busca y reserva nuevos libros</p>
+        </div>
+      </button>
+      
+      <button (click)="navigateToLoans()" class="action-card action-loans">
+        <div class="action-icon">📚</div>
+        <div class="action-content">
+          <h3>Mis Préstamos</h3>
+          <p>Gestiona tus préstamos activos</p>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <section class="activity-section">
+    <h2>Actividad Reciente</h2>
+    <div class="activity-list">
+      @for (activity of recentActivity(); track activity.id) {
+        <div class="activity-item">
+          <div class="activity-icon">{{ getActivityIcon(activity.type) }}</div>
+          <div class="activity-info">
+            <div class="activity-details">
+              <span class="activity-type">{{ getActivityText(activity.type) }}</span>
+              <span class="activity-title">{{ activity.title }}</span>
+            </div>
+            <span class="activity-date">{{ activity.date }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+</div>

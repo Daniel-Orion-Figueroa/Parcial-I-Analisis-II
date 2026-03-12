@@ -1,1 +1,16 @@
-<p>empty-state works!</p>
+<div class="empty-state">
+  <div class="empty-state-icon">
+    {{ icon }}
+  </div>
+  
+  <div class="empty-state-content">
+    <h3 class="empty-state-title">{{ title }}</h3>
+    <p class="empty-state-message">{{ message }}</p>
+    
+    @if (showAction && actionText) {
+      <button class="empty-state-action" (click)="onActionClick()">
+        {{ actionText }}
+      </button>
+    }
+  </div>
+</div>

@@ -1,1 +1,87 @@
-<p>book-filter works!</p>
+<div class="book-filter">
+  <div class="filter-basic">
+    <div class="filter-group">
+      <label for="category">Categoría</label>
+      <select 
+        id="category"
+        [(ngModel)]="internalCategory" 
+        (change)="onFilterChange()"
+        class="filter-select">
+        <option value="">Todas las categorías</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="availability">Disponibilidad</label>
+      <select 
+        id="availability"
+        [(ngModel)]="internalAvailability" 
+        (change)="onFilterChange()"
+        class="filter-select">
+        <option value="">Todos los estados</option>
+        <option value="available">Disponible</option>
+        <option value="borrowed">Prestado</option>
+        <option value="reserved">Reservado</option>
+      </select>
+    </div>
+
+    <div class="filter-actions">
+      <button 
+        class="btn btn-outline btn-sm" 
+        (click)="toggleAdvanced()"
+        [class.active]="showAdvanced">
+        ⚙️ Filtros Avanzados
+      </button>
+      
+      @if (hasActiveFilters()) {
+        <button 
+          class="btn btn-secondary btn-sm" 
+          (click)="onReset()">
+          🔄 Limpiar Filtros
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (showAdvanced) {
+    <div class="filter-advanced">
+      <div class="advanced-header">
+        <h3>Filtros Avanzados</h3>
+        <button class="close-btn" (click)="toggleAdvanced()">×</button>
+      </div>
+      
+      <div class="advanced-content">
+        <div class="filter-group">
+          <label for="yearMin">Año Mínimo</label>
+          <input 
+            id="yearMin"
+            type="number"
+            [(ngModel)]="internalYearMin"
+            (input)="onFilterChange()"
+            [min]="yearRange.min"
+            [max]="yearRange.max"
+            class="filter-input"
+            placeholder="Desde"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label for="yearMax">Año Máximo</label>
+          <input 
+            id="yearMax"
+            type="number"
+            [(ngModel)]="internalYearMax"
+            (input)="onFilterChange()"
+            [min]="yearRange.min"
+            [max]="yearRange.max"
+            class="filter-input"
+            placeholder="Hasta"
+          />
+        </div>
+      </div>
+    </div>
+  }
+</div>

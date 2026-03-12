@@ -1,1 +1,48 @@
-<p>book-search works!</p>
+<div class="book-search">
+  <div class="search-container">
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onSearchInput()"
+        (keyup)="onKeyup($event)"
+        [placeholder]="getPlaceholder()"
+        class="search-input"
+        [class.loading]="loading"
+      />
+      
+      @if (searchTerm) {
+        <button class="clear-btn" (click)="onClear()" title="Limpiar búsqueda">
+          ×
+        </button>
+      }
+      
+      @if (loading) {
+        <div class="search-loader"></div>
+      }
+    </div>
+    
+    @if (showFilters && filters.length > 0) {
+      <select 
+        [(ngModel)]="selectedFilter" 
+        (change)="onFilterChange()"
+        class="search-filter">
+        <option value="">Todos los campos</option>
+        @for (filter of filters; track filter) {
+          <option [value]="filter">{{ filter }}</option>
+        }
+      </select>
+    }
+    
+    <button class="search-btn" (click)="onSearchSubmit()" [disabled]="loading">
+      🔍
+    </button>
+  </div>
+  
+  @if (showFilters && selectedFilter) {
+    <div class="active-filter">
+      Buscando por: <strong>{{ selectedFilter }}</strong>
+      <button class="remove-filter" (click)="selectedFilter = ''; onFilterChange()">×</button>
+    </div>
+  }
+</div>

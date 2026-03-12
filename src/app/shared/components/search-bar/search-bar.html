@@ -1,17 +1,51 @@
 <div class="search-bar">
   <div class="search-container">
-    <input
-      type="text"
-      [(ngModel)]="searchTerm"
-      (keyup)="onKeyup($event)"
-      placeholder="Buscar libros..."
-      class="search-input"
-    />
-    <button (click)="onSearch()" class="search-button">
+    @if (showFilters && filters.length > 0) {
+      <select 
+        [(ngModel)]="selectedFilter" 
+        (change)="onFilterChange($any($event.target).value)"
+        class="search-filter"
+      >
+        <option value="">Todos</option>
+        @for (filter of filters; track filter) {
+          <option [value]="filter">{{ filter }}</option>
+        }
+      </select>
+    }
+    
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup)="onKeyup($event)"
+        [placeholder]="getPlaceholder()"
+        class="search-input"
+        [class.loading]="loading"
+      />
+      
+      @if (searchTerm) {
+        <button (click)="onClear()" class="clear-button" title="Limpiar búsqueda">
+          ×
+        </button>
+      }
+      
+      @if (loading) {
+        <div class="search-loader"></div>
+      }
+    </div>
+    
+    <button (click)="onSearch()" class="search-button" [disabled]="loading">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/>
         <path d="m21 21-4.35-4.35"/>
       </svg>
     </button>
   </div>
+  
+  @if (showFilters && selectedFilter) {
+    <div class="active-filter">
+      Filtrando por: <strong>{{ selectedFilter }}</strong>
+      <button (click)="onFilterChange('')" class="remove-filter">×</button>
+    </div>
+  }
 </div>

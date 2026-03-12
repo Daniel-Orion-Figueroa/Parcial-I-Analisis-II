@@ -1,0 +1,44 @@
+<div class="form-input-container">
+  @if (label) {
+    <label [for]="id" class="form-label">
+      {{ label }}
+      @if (required) {
+        <span class="required">*</span>
+      }
+    </label>
+  }
+  
+  <div class="input-wrapper">
+    <input
+      [id]="id"
+      [name]="name"
+      [type]="showPassword && showPasswordToggle ? 'text' : type"
+      [placeholder]="placeholder"
+      [value]="value"
+      [disabled]="disabled"
+      [required]="required"
+      [class.error]="error"
+      class="form-input"
+      (input)="onInputChange($event)"
+      (blur)="onBlur()"
+      (focus)="onFocus()"
+    />
+    
+    @if (showPasswordToggle && type === 'password') {
+      <button
+        type="button"
+        class="password-toggle"
+        (click)="showPassword = !showPassword"
+        aria-label="Toggle password visibility"
+      >
+        {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+      </button>
+    }
+  </div>
+  
+  @if (error) {
+    <div class="error-message">
+      {{ error }}
+    </div>
+  }
+</div>

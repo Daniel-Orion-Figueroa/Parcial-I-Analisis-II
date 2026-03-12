@@ -1,1 +1,95 @@
-<p>reservation-card works!</p>
+<div class="reservation-card" [class]="getCardClass()">
+  <div class="reservation-header">
+    <div class="book-info">
+      <h3 class="book-title">{{ reservation.bookTitle }}</h3>
+      <p class="book-author">{{ reservation.bookAuthor }}</p>
+    </div>
+    <div class="reservation-status">
+      <span class="status-badge" [class]="getStatusClass()">
+        <span class="status-icon">{{ getStatusIcon() }}</span>
+        {{ getStatusText() }}
+      </span>
+    </div>
+  </div>
+  
+  <div class="reservation-details">
+    <div class="detail-item">
+      <span class="detail-label">Fecha de reserva:</span>
+      <span class="detail-value">{{ reservation.reservationDate }}</span>
+    </div>
+    
+    <div class="detail-item">
+      <span class="detail-label">Vence:</span>
+      <span class="detail-value" [class.expire-warning]="isExpiringSoon()">
+        {{ reservation.expiryDate }}
+        @if (isExpiringSoon()) {
+          <span class="warning-text"> ({{ getDaysUntilExpiry() }} días)</span>
+        }
+      </span>
+    </div>
+    
+    @if (reservation.queuePosition > 0) {
+      <div class="detail-item">
+        <span class="detail-label">Posición en cola:</span>
+        <span class="detail-value queue-position">{{ reservation.queuePosition }}</span>
+      </div>
+    }
+    
+    @if (!compact && reservation.notes) {
+      <div class="detail-item">
+        <span class="detail-label">Notas:</span>
+        <span class="detail-value notes">{{ reservation.notes }}</span>
+      </div>
+    }
+  </div>
+  
+  <div class="reservation-actions">
+    @if (reservation.status === 'active') {
+      <button (click)="onCancel()" class="btn btn-cancel">
+        ❌ Cancelar Reserva
+      </button>
+    }
+    
+    @if (reservation.status === 'available') {
+      <button (click)="onBorrow()" class="btn btn-borrow">
+        📚 Solicitar Préstamo
+      </button>
+    }
+    
+    @if (reservation.status === 'expired') {
+      <button disabled class="btn btn-disabled">
+        ⏰ Reserva Expirada
+      </button>
+    }
+    
+    @if (reservation.status === 'cancelled') {
+      <button disabled class="btn btn-disabled">
+        ❌ Reserva Cancelada
+      </button>
+    }
+    
+    @if (!compact) {
+      <button (click)="onViewDetails()" class="btn btn-outline">
+        📖 Ver Detalles
+      </button>
+    }
+  </div>
+  
+  @if (compact) {
+    <div class="compact-actions">
+      <button (click)="onViewDetails()" class="btn-icon" title="Ver detalles">
+        📖
+      </button>
+      @if (reservation.status === 'active') {
+        <button (click)="onCancel()" class="btn-icon btn-cancel" title="Cancelar reserva">
+          ❌
+        </button>
+      }
+      @if (reservation.status === 'available') {
+        <button (click)="onBorrow()" class="btn-icon btn-borrow" title="Solicitar préstamo">
+          📚
+        </button>
+      }
+    </div>
+  }
+</div>

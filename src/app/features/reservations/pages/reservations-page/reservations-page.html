@@ -1,1 +1,38 @@
-<p>reservations-page works!</p>
+<div class="reservations-page">
+  <header class="page-header">
+    <h1>Mis Reservas</h1>
+    <p>Gestiona tus reservas de libros</p>
+  </header>
+
+  <div class="filters-section">
+    <app-search-bar 
+      placeholder="Buscar por título o autor..."
+      [filters]="['En espera', 'Expiradas', 'Disponibles']"
+      [showFilters]="true"
+      (search)="onSearch($event)">
+    </app-search-bar>
+  </div>
+
+  <div class="reservations-grid">
+    @for (reservation of filteredReservations(); track reservation.id) {
+      <app-reservation-card 
+        [reservation]="reservation"
+        [compact]="false"
+        (cancel)="onCancelReservation($event)"
+        (borrow)="onBorrowBook($event)"
+        (viewDetails)="onViewReservationDetails($event)">
+      </app-reservation-card>
+    }
+  </div>
+
+  @if (filteredReservations().length === 0) {
+    <app-empty-state 
+      icon="📋"
+      title="No se encontraron reservas"
+      message="No tienes reservas que coincidan con los filtros actuales"
+      [showAction]="true"
+      actionText="Limpiar filtros"
+      (action)="onSearch({ term: '', filter: '' })">
+    </app-empty-state>
+  }
+</div>

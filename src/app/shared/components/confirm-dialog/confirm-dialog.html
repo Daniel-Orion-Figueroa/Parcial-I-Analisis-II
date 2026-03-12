@@ -1,1 +1,25 @@
-<p>confirm-dialog works!</p>
+@if (isOpen) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-container" [class]="getDialogClass()" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>{{ title }}</h3>
+        <button class="close-button" (click)="closeDialog()" aria-label="Close dialog">
+          ×
+        </button>
+      </div>
+      
+      <div class="dialog-body">
+        <p>{{ message }}</p>
+      </div>
+      
+      <div class="dialog-footer">
+        <button class="btn btn--cancel" (click)="onCancel()">
+          {{ cancelText }}
+        </button>
+        <button class="btn" [class]="getConfirmButtonClass()" (click)="onConfirm()">
+          {{ confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

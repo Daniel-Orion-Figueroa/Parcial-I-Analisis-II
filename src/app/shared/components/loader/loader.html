@@ -1,1 +1,14 @@
-<p>loader works!</p>
+<div class="loader-container">
+  <div class="spinner" [class]="getLoaderClass()">
+    <div class="spinner-circle"></div>
+    <div class="spinner-circle"></div>
+    <div class="spinner-circle"></div>
+    <div class="spinner-circle"></div>
+  </div>
+  
+  @if (showText && text) {
+    <div class="loader-text" [class]="getTextClass()">
+      {{ text }}
+    </div>
+  }
+</div>

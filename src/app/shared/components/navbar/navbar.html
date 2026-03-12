@@ -1,1 +1,92 @@
-<p>navbar works!</p>
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <a routerLink="/dashboard" class="brand-link">
+        📚 {{ title }}
+      </a>
+    </div>
+    
+    <div class="navbar-menu">
+      <div class="nav-links">
+        <a routerLink="/dashboard" class="nav-link" routerLinkActive="active">
+          🏠 Inicio
+        </a>
+        <a routerLink="/books" class="nav-link" routerLinkActive="active">
+          📖 Libros
+        </a>
+        <a routerLink="/loans" class="nav-link" routerLinkActive="active">
+          📚 Préstamos
+        </a>
+        <a routerLink="/reservations" class="nav-link" routerLinkActive="active">
+          📋 Reservas
+        </a>
+      </div>
+      
+      @if (showUserMenu) {
+        <div class="user-menu-container">
+          <button class="user-menu-button" (click)="toggleUserMenu()">
+            @if (userAvatar) {
+              <img [src]="userAvatar" [alt]="userName" class="user-avatar" />
+            } @else {
+              <div class="user-initials">
+                {{ getInitials(userName) }}
+              </div>
+            }
+            <span class="user-name">{{ userName }}</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          
+          @if (isUserMenuOpen) {
+            <div class="user-dropdown">
+              <a class="dropdown-item" (click)="navigateToProfile()">
+                👤 Perfil
+              </a>
+              <a class="dropdown-item" (click)="navigateToSettings()">
+                ⚙️ Configuración
+              </a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item logout" (click)="logout()">
+                🚪 Cerrar sesión
+              </a>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    
+    <button class="mobile-menu-toggle" (click)="toggleMenu()">
+      ☰
+    </button>
+  </div>
+  
+  @if (isMenuOpen) {
+    <div class="mobile-menu">
+      <a routerLink="/dashboard" class="mobile-nav-link" routerLinkActive="active" (click)="toggleMenu()">
+        🏠 Inicio
+      </a>
+      <a routerLink="/books" class="mobile-nav-link" routerLinkActive="active" (click)="toggleMenu()">
+        📖 Libros
+      </a>
+      <a routerLink="/loans" class="mobile-nav-link" routerLinkActive="active" (click)="toggleMenu()">
+        📚 Préstamos
+      </a>
+      <a routerLink="/reservations" class="mobile-nav-link" routerLinkActive="active" (click)="toggleMenu()">
+        📋 Reservas
+      </a>
+      
+      @if (showUserMenu) {
+        <div class="mobile-user-menu">
+          <a class="mobile-nav-link" (click)="navigateToProfile(); toggleMenu()">
+            👤 Perfil
+          </a>
+          <a class="mobile-nav-link" (click)="navigateToSettings(); toggleMenu()">
+            ⚙️ Configuración
+          </a>
+          <a class="mobile-nav-link logout" (click)="logout(); toggleMenu()">
+            🚪 Cerrar sesión
+          </a>
+        </div>
+      }
+    </div>
+  }
+</nav>
