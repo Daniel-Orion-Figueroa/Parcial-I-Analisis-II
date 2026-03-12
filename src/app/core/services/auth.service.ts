@@ -49,7 +49,17 @@ export class AuthService {
     }
 
     if (user) {
-      this.userSubject.next(JSON.parse(user));
+      try {
+        const parsedUser = JSON.parse(user);
+        this.userSubject.next(parsedUser);
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        // Limpiar datos corruptos
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        this.userSubject.next(null);
+        this.tokenSubject.next(null);
+      }
     }
 
   }
@@ -64,12 +74,14 @@ export class AuthService {
   /**
    * Registro de usuario
    */
-  register(userData: Partial<User>): Observable<User> {
+  register(userData: Partial<User>): Observable<any> {
 
     return this.http
-      .post<User>(`${this.apiUrl}${API_ENDPOINTS.AUTH.REGISTER}`, userData)
+      .post<any>(`${this.apiUrl}${API_ENDPOINTS.AUTH.REGISTER}`, userData)
       .pipe(
-        tap((user) => {
+        tap((response) => {
+          // El backend devuelve: { message: "User registered successfully", data: User }
+          const user = response.data;
 
           if (this.isBrowser()) {
             localStorage.setItem('user', JSON.stringify(user));
@@ -90,17 +102,55 @@ export class AuthService {
       .post<any>(`${this.apiUrl}${API_ENDPOINTS.AUTH.LOGIN}`, { email, password })
       .pipe(
         tap((response) => {
-
-          const user = response.user;
-          const token = response.token;
-
-          if (this.isBrowser()) {
-            localStorage.setItem('user', JSON.stringify(user));
-            localStorage.setItem('token', token);
+          // Debug: ver la respuesta completa del backend
+          console.log('AuthService: Respuesta completa del backend:', response);
+          
+          // El backend devuelve: { message: "Login successful", data: {token: string} }
+          // NOTA: El backend no devuelve el usuario, solo el token
+          const authData = response.data;
+          console.log('AuthService: authData:', authData);
+          
+          const token = authData.token;
+          console.log('AuthService: token extraído:', token);
+          
+          // Como el backend no devuelve el usuario, necesitamos obtenerlo del token
+          // Por ahora, crearemos un usuario básico desde el token JWT
+          let user = null;
+          
+          if (token && this.isBrowser()) {
+            try {
+              // Guardar el token
+              localStorage.setItem('token', token);
+              console.log('AuthService: Token guardado en localStorage');
+              
+              // Extraer información básica del token JWT (email y rol)
+              const payload = JSON.parse(atob(token.split('.')[1]));
+              console.log('AuthService: Payload del token:', payload);
+              
+              user = {
+                id: payload.sub || 0, // Usar el subject (email) como id temporal
+                name: payload.name || payload.sub.split('@')[0] || 'Usuario', // Usar email como nombre si no hay 'name'
+                email: payload.sub || payload.email || '',
+                password: '',
+                tipoUsuario: payload.role || 'ESTUDIANTE',
+                fechaRegistro: new Date().toISOString().split('T')[0]
+              };
+              
+              console.log('AuthService: Usuario reconstruido desde token:', user);
+              
+              // Guardar el usuario en localStorage
+              localStorage.setItem('user', JSON.stringify(user));
+              console.log('AuthService: Usuario guardado en localStorage');
+              
+            } catch (error) {
+              console.error('AuthService: Error procesando token:', error);
+            }
           }
 
+          // Actualizar los BehaviorSubjects
           this.userSubject.next(user);
           this.tokenSubject.next(token);
+          console.log('AuthService: BehaviorSubject actualizado');
 
         })
       );
@@ -131,7 +181,29 @@ export class AuthService {
    * Obtener usuario actual
    */
   getCurrentUser(): User | null {
-    return this.userSubject.value;
+    // Primero intentar obtener del BehaviorSubject
+    const user = this.userSubject.value;
+    if (user) {
+      return user;
+    }
+    
+    // Si no hay en BehaviorSubject, intentar del localStorage
+    if (this.isBrowser()) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          // Actualizar el BehaviorSubject con el usuario recuperado
+          this.userSubject.next(parsedUser);
+          return parsedUser;
+        } catch (error) {
+          console.error('Error parsing user from localStorage in getCurrentUser:', error);
+          localStorage.removeItem('user');
+        }
+      }
+    }
+    
+    return null;
   }
 
   /**

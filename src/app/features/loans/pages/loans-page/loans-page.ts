@@ -41,73 +41,19 @@ export class LoansPage implements OnInit {
       return;
     }
 
-    // Datos mock que coinciden con el backend
-    const mockLoans: Loan[] = [
-      {
-        id: 1,
-        user: currentUser,
-        book: {
-          id: 1,
-          title: 'El Principito',
-          author: 'Antoine de Saint-Exupéry',
-          editorial: 'Santillana',
-          publicationYear: 1943,
-          isbn: '978-3-16-148410-0',
-          category: 'Ficción',
-          totalQuantity: 5,
-          availableQuantity: 3,
-          description: 'Un clásico de la literatura universal',
-          imageUrl: ''
-        },
-        loanDate: '2024-01-15',
-        returnDate: '2024-02-15',
-        status: LoanStatus.ACTIVE
+    // CONSUMIR API REAL CON LOAN SERVICE
+    this.loanService.getLoansByUser(currentUser.id).subscribe({
+      next: (loans) => {
+        this.loans.set(loans);
+        this.filteredLoans.set(loans);
+        this.isLoading.set(false);
       },
-      {
-        id: 2,
-        user: currentUser,
-        book: {
-          id: 2,
-          title: 'Cien Años de Soledad',
-          author: 'Gabriel García Márquez',
-          editorial: 'Oveja Negra',
-          publicationYear: 1967,
-          isbn: '978-0-06-088328-7',
-          category: 'Realismo mágico',
-          totalQuantity: 3,
-          availableQuantity: 1,
-          description: 'Obra maestra del realismo mágico',
-          imageUrl: ''
-        },
-        loanDate: '2024-01-05',
-        returnDate: '2024-02-05',
-        status: LoanStatus.LATE
-      },
-      {
-        id: 3,
-        user: currentUser,
-        book: {
-          id: 3,
-          title: '1984',
-          author: 'George Orwell',
-          editorial: 'Seix Barral',
-          publicationYear: 1949,
-          isbn: '978-0-452-28423-4',
-          category: 'Ciencia ficción',
-          totalQuantity: 4,
-          availableQuantity: 2,
-          description: 'Distopía clásica de Orwell',
-          imageUrl: ''
-        },
-        loanDate: '2023-12-20',
-        returnDate: '2024-01-20',
-        status: LoanStatus.RETURNED
+      error: (error) => {
+        console.error('Error loading loans:', error);
+        this.isLoading.set(false);
+        alert('Error loading loans from API. Please check backend connection.');
       }
-    ];
-
-    this.loans.set(mockLoans);
-    this.filteredLoans.set(mockLoans);
-    this.isLoading.set(false);
+    });
   }
 
   onSearch(searchData: { term: string; filter?: string }): void {

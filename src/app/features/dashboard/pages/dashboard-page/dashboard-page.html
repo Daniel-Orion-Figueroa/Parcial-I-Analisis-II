@@ -10,6 +10,10 @@
         </span>
       </div>
     </div>
+    <button class="logout-btn" (click)="logout()">
+      <span class="logout-icon">🚪</span>
+      Cerrar Sesión
+    </button>
   </header>
 
   <!-- Dashboard para ESTUDIANTE -->
@@ -202,6 +206,30 @@
           <div class="action-content">
             <h3>Gestión de Reservas</h3>
             <p>Administra todas las reservas</p>
+          </div>
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- Botones de limpieza de datos (solo para desarrollo) -->
+  @if (userRole() === TipoUsuario.ADMIN) {
+    <section class="admin-tools">
+      <h2>🔧 Herramientas de Desarrollo</h2>
+      <div class="tools-grid">
+        <button (click)="checkStorageData()" class="tool-button tool-check">
+          <div class="tool-icon">🔍</div>
+          <div class="tool-content">
+            <h4>Ver Datos en Storage</h4>
+            <p>Revisa qué hay guardado en localStorage</p>
+          </div>
+        </button>
+        
+        <button (click)="clearAllData()" class="tool-button tool-clear">
+          <div class="tool-icon">🗑️</div>
+          <div class="tool-content">
+            <h4>Limpiar Todos los Datos</h4>
+            <p>Elimina usuarios mock, libros, préstamos y reservas</p>
           </div>
         </button>
       </div>

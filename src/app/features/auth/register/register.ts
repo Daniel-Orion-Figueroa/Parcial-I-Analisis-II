@@ -62,35 +62,22 @@ export class RegisterComponent {
   }
 
   private saveNewUser(user: any): void {
-    // Obtener usuarios existentes
-    const existingUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
-    
-    // Verificar si el email ya existe
-    if (existingUsers.find((u: any) => u.email === user.email)) {
-      alert('Este email ya está registrado. Intenta con otro.');
-      this.isLoading.set(false);
-      return;
-    }
-    
-    // Agregar nuevo usuario
-    existingUsers.push(user);
-    localStorage.setItem('mockUsers', JSON.stringify(existingUsers));
-    
-    // Guardar sesión automáticamente después del registro
-    const token = 'mock-token-' + Date.now();
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    
-    // Actualizar estado del AuthService usando métodos públicos
-    this.authService.updateUser(user);
-    this.authService.updateToken(token);
-    
-    // Navegar directamente al dashboard
-    setTimeout(() => {
-      this.isLoading.set(false);
-      alert(`¡Registro exitoso! Bienvenido ${user.name} (${user.tipoUsuario})`);
-      this.router.navigate(['/dashboard']);
-    }, 1000);
+    // Usar API real del AuthService
+    this.authService.register(user).subscribe({
+      next: (registeredUser) => {
+        // El AuthService ya maneja el almacenamiento y actualización del estado
+        setTimeout(() => {
+          this.isLoading.set(false);
+          alert(`¡Registro exitoso! Bienvenido ${registeredUser.name} (${registeredUser.tipoUsuario})`);
+          this.router.navigate(['/dashboard']);
+        }, 1000);
+      },
+      error: (error) => {
+        console.error('Error en registro:', error);
+        this.isLoading.set(false);
+        alert('Error de registro: ' + (error.message || 'No se pudo completar el registro'));
+      }
+    });
   }
 
   togglePassword(): void {

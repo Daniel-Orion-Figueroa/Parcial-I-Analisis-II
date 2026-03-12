@@ -36,10 +36,6 @@ export class BooksManagement implements OnInit {
     // CONSUMIR API REAL
     this.bookService.getBooks().subscribe({
       next: (books) => {
-        console.log('BooksManagement: Datos recibidos del BookService:', books);
-        console.log('BooksManagement: ¿Es array?', Array.isArray(books));
-        console.log('BooksManagement: Tipo de datos:', typeof books);
-        
         this.books.set(books);
         this.filteredBooks.set(books);
         this.isLoading.set(false);

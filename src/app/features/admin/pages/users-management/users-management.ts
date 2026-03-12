@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User, TipoUsuario } from '../../../../core/interfaces/user';
 import { AuthService } from '../../../../core/services/auth.service';
+import { UserService } from '../../../../core/services/user.service';
 
 @Component({
   selector: 'app-users-management',
@@ -19,8 +20,12 @@ export class UsersManagement implements OnInit {
   showAddForm = signal(false);
   editingUser = signal<User | null>(null);
   formData = signal<Partial<User>>({});
+  userTypes = Object.values(TipoUsuario);
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UserService
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -29,48 +34,23 @@ export class UsersManagement implements OnInit {
   private loadUsers(): void {
     this.isLoading.set(true);
     
-    // Datos mock que coinciden con el backend
-    const mockUsers: User[] = [
-      {
-        id: 1,
-        name: 'Juan Pérez',
-        email: 'juan.perez@university.edu',
-        password: 'password123',
-        tipoUsuario: TipoUsuario.ESTUDIANTE,
-        fechaRegistro: '2024-01-15'
+    // CONSUMIR API REAL CON USER SERVICE
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.users.set(users);
+        this.filteredUsers.set(users);
+        this.isLoading.set(false);
       },
-      {
-        id: 2,
-        name: 'María García',
-        email: 'maria.garcia@university.edu',
-        password: 'password123',
-        tipoUsuario: TipoUsuario.DOCENTE,
-        fechaRegistro: '2024-01-10'
-      },
-      {
-        id: 3,
-        name: 'Carlos Rodríguez',
-        email: 'carlos.rodriguez@university.edu',
-        password: 'password123',
-        tipoUsuario: TipoUsuario.ESTUDIANTE,
-        fechaRegistro: '2024-02-01'
-      },
-      {
-        id: 4,
-        name: 'Ana Martínez',
-        email: 'ana.martinez@university.edu',
-        password: 'password123',
-        tipoUsuario: TipoUsuario.ADMIN,
-        fechaRegistro: '2023-12-15'
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.isLoading.set(false);
+        // Si falla la API, mostrar mensaje pero no cargar datos mock
+        alert('Error loading users from API. Please check backend connection.');
       }
-    ];
-
-    this.users.set(mockUsers);
-    this.filteredUsers.set(mockUsers);
-    this.isLoading.set(false);
+    });
   }
 
-  onSearch(searchData: { term: string; filter?: string }): void {
+  onSearch(searchData: { term: string }): void {
     this.searchTerm.set(searchData.term);
     this.filterUsers();
   }
@@ -113,45 +93,52 @@ export class UsersManagement implements OnInit {
 
   onDeleteUser(user: User): void {
     if (confirm(`¿Estás seguro de eliminar a "${user.name}"?`)) {
-      console.log('Eliminando usuario:', user);
-      
-      const currentUsers = this.users().filter(u => u.id !== user.id);
-      this.users.set(currentUsers);
-      this.filterUsers();
-      
-      alert('Usuario eliminado exitosamente');
+      this.userService.deleteUser(user.id).subscribe({
+        next: () => {
+          // El servicio ya actualiza el estado internamente
+          this.filterUsers();
+          alert('Usuario eliminado exitosamente');
+        },
+        error: (error) => {
+          console.error('Error deleting user:', error);
+          alert('Error deleting user. Please try again.');
+        }
+      });
     }
   }
 
   onSaveUser(): void {
-    const userData = this.formData();
-    
     if (this.editingUser()) {
-      // Editar usuario existente
-      const updatedUser = { ...this.editingUser()!, ...userData };
-      const currentUsers = this.users().map(u => 
-        u.id === updatedUser.id ? updatedUser : u
-      );
-      this.users.set(currentUsers);
-      alert('Usuario actualizado exitosamente');
+      // Edit existing user
+      this.userService.updateUser(this.editingUser()!.id, this.formData()).subscribe({
+        next: (updatedUser) => {
+          // El servicio ya actualiza el estado internamente
+          this.showAddForm.set(false);
+          this.editingUser.set(null);
+          this.filterUsers();
+          alert('Usuario actualizado exitosamente');
+        },
+        error: (error) => {
+          console.error('Error updating user:', error);
+          alert('Error updating user. Please try again.');
+        }
+      });
     } else {
-      // Agregar nuevo usuario
-      const newUser: User = {
-        id: Math.max(...this.users().map(u => u.id)) + 1,
-        name: userData.name || '',
-        email: userData.email || '',
-        password: userData.password || '',
-        tipoUsuario: userData.tipoUsuario || TipoUsuario.ESTUDIANTE,
-        fechaRegistro: userData.fechaRegistro || new Date().toISOString().split('T')[0]
-      };
-      
-      this.users.set([...this.users(), newUser]);
-      alert('Usuario agregado exitosamente');
+      // Add new user
+      this.userService.createUser(this.formData()).subscribe({
+        next: (newUser) => {
+          // El servicio ya actualiza el estado internamente
+          this.showAddForm.set(false);
+          this.editingUser.set(null);
+          this.filterUsers();
+          alert('Usuario creado exitosamente');
+        },
+        error: (error) => {
+          console.error('Error creating user:', error);
+          alert('Error creating user. Please try again.');
+        }
+      });
     }
-    
-    this.showAddForm.set(false);
-    this.editingUser.set(null);
-    this.filterUsers();
   }
 
   onCancelForm(): void {
@@ -162,10 +149,6 @@ export class UsersManagement implements OnInit {
   updateFormField(field: keyof User, value: any): void {
     const current = this.formData();
     this.formData.set({ ...current, [field]: value });
-  }
-
-  getInputValue(event: Event): string {
-    return (event.target as HTMLInputElement).value;
   }
 
   getTotalUsers(): number {
@@ -184,29 +167,30 @@ export class UsersManagement implements OnInit {
     return this.users().filter(user => user.tipoUsuario === TipoUsuario.ADMIN).length;
   }
 
-  getRoleColor(tipoUsuario: TipoUsuario): string {
+  getInputValue(event: Event): string {
+    return (event.target as HTMLInputElement).value;
+  }
+
+  getRoleIcon(tipoUsuario: string): string {
     switch (tipoUsuario) {
-      case TipoUsuario.ESTUDIANTE:
-        return '#28a745';
-      case TipoUsuario.DOCENTE:
-        return '#007bff';
-      case TipoUsuario.ADMIN:
-        return '#dc3545';
-      default:
-        return '#6c757d';
+      case 'ESTUDIANTE': return '👨‍🎓';
+      case 'DOCENTE': return '👨‍🏫';
+      case 'ADMIN': return '👨‍💼';
+      default: return '👤';
+    }
+  }
+ 
+  getRoleColor(tipoUsuario: string): string {
+    switch (tipoUsuario) {
+      case 'ESTUDIANTE': return '#4CAF50';
+      case 'DOCENTE': return '#2196F3';
+      case 'ADMIN': return '#FF5722';
+      default: return '#9E9E9E';
     }
   }
 
-  getRoleIcon(tipoUsuario: TipoUsuario): string {
-    switch (tipoUsuario) {
-      case TipoUsuario.ESTUDIANTE:
-        return '🎓';
-      case TipoUsuario.DOCENTE:
-        return '👨‍🏫';
-      case TipoUsuario.ADMIN:
-        return '👑';
-      default:
-        return '👤';
-    }
+  refreshUsers(): void {
+    console.log('🔄 Refrescando usuarios desde API...');
+    this.loadUsers();
   }
 }

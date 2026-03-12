@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { TipoUsuario } from '../../../../core/interfaces/user';
+import { ClearStorageUtil } from '../../../../core/utils/clear-storage.util';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -20,6 +21,9 @@ export class DashboardPage implements OnInit {
   totalBooks = signal(150);
   totalUsers = signal(45);
   availableBooks = signal(120);
+  
+  // Exponer TipoUsuario para el template
+  TipoUsuario = TipoUsuario;
 
   constructor(
     private router: Router,
@@ -96,8 +100,26 @@ export class DashboardPage implements OnInit {
     this.router.navigate(['/admin/users-management']);
   }
 
+  clearAllData(): void {
+    if (confirm('¿Estás seguro de eliminar todos los datos locales? Esto borrará usuarios mock, libros, préstamos, reservas, cookies y forzará la recarga completa de la página.')) {
+      ClearStorageUtil.clearAndReload();
+      alert('✅ Todos los datos locales han sido eliminados. La página se recargará automáticamente.');
+    }
+  }
+
+  checkStorageData(): void {
+    ClearStorageUtil.checkStorage();
+  }
+
   navigateToBooksManagement(): void {
     this.router.navigate(['/admin/books-management']);
+  }
+
+  logout(): void {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+      this.authService.logout();
+      this.router.navigate(['/auth/login']);
+    }
   }
 
   getWelcomeMessage(): string {

@@ -22,12 +22,16 @@ export class BookService {
   /**
    * Obtener todos los libros
    */
-  getBooks(): Observable<Book[]> {
+  getBooks(): Observable<any> {
 
     return this.http
-      .get<Book[]>(`${this.apiUrl}${API_ENDPOINTS.BOOKS.GET_ALL}`)
+      .get<any>(`${this.apiUrl}${API_ENDPOINTS.BOOKS.GET_ALL}`)
       .pipe(
-        tap((books) => {
+        tap((response: any) => {
+          console.log('BookService: Respuesta completa del backend:', response);
+          // El backend devuelve: { message: "...", data: [Book[], ...] }
+          const books = response.data || response; // Fallback por si acaso
+          console.log('BookService: Libros extraídos:', books);
           this.booksSubject.next(books);
         })
       );

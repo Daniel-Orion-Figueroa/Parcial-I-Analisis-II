@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators, FormGroup } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
-import { TipoUsuario } from '../../../core/interfaces/user';
 
 @Component({
   selector: 'app-login',
@@ -36,93 +35,52 @@ export class LoginComponent {
       
       console.log('Login data:', { email, password });
       
-      // Simulación de usuarios para demostración
-      this.mockLogin(email, password);
+      // Usar API real del backend
+      this.authService.login(email, password).subscribe({
+        next: (response) => {
+          console.log('Login exitoso:', response);
+          console.log('Usuario en AuthService:', this.authService.getCurrentUser());
+          console.log('Token guardado:', this.authService.getStoredToken());
+          this.isLoading.set(false);
+          
+          // Pequeño retraso para asegurar que el estado se actualice
+          setTimeout(() => {
+            console.log('Intentando redirigir al dashboard...');
+            // Redirigir al dashboard
+            this.router.navigate(['/dashboard']).then(navSuccess => {
+              console.log('Redirección exitosa:', navSuccess);
+            }).catch(navError => {
+              console.error('Error en redirección:', navError);
+            });
+          }, 100);
+        },
+        error: (error) => {
+          console.error('Error en login:', error);
+          this.isLoading.set(false);
+          
+          // Mostrar mensaje de error
+          alert('Error de inicio de sesión: ' + (error.message || 'Credenciales incorrectas'));
+        }
+      });
     } else {
       console.log('Formulario inválido:', this.loginForm);
+      // Marcar todos los campos como touched para mostrar errores
+      Object.keys(this.loginForm.controls).forEach(key => {
+        const control = this.loginForm.get(key);
+        control?.markAsTouched();
+      });
     }
-  }
-
-  private mockLogin(email: string, password: string): void {
-    // Base de datos simulada de usuarios
-    const defaultUsers = [
-      {
-        id: 1,
-        name: 'Juan Pérez',
-        email: 'juan@university.edu',
-        password: 'password123',
-        tipoUsuario: TipoUsuario.ESTUDIANTE,
-        fechaRegistro: '2024-01-15'
-      },
-      {
-        id: 2,
-        name: 'María García',
-        email: 'maria@university.edu',
-        password: 'password123',
-        tipoUsuario: TipoUsuario.DOCENTE,
-        fechaRegistro: '2024-01-10'
-      },
-      {
-        id: 3,
-        name: 'Carlos Admin',
-        email: 'admin@university.edu',
-        password: 'admin123',
-        tipoUsuario: TipoUsuario.ADMIN,
-        fechaRegistro: '2023-12-15'
-      },
-      {
-        id: 4,
-        name: 'Ana Estudiante',
-        email: 'ana@university.edu',
-        password: 'password123',
-        tipoUsuario: TipoUsuario.ESTUDIANTE,
-        fechaRegistro: '2024-02-01'
-      }
-    ];
-
-    // Obtener usuarios registrados adicionalmente
-    const registeredUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
-    
-    // Combinar usuarios por defecto y registrados
-    const allUsers = [...defaultUsers, ...registeredUsers];
-    
-    // Buscar usuario por email y password
-    const user = allUsers.find(u => u.email === email && u.password === password);
-
-    setTimeout(() => {
-      this.isLoading.set(false);
-      
-      if (user) {
-        // Login exitoso - guardar en AuthService
-        this.saveUserSession(user);
-        
-        console.log('Login exitoso:', user);
-        alert(`¡Bienvenido ${user.name}! (${user.tipoUsuario})`);
-        
-        // Navegar al dashboard
-        this.router.navigate(['/dashboard']);
-      } else {
-        // Login fallido
-        console.log('Credenciales incorrectas');
-        alert('Email o contraseña incorrectos. Intenta de nuevo.');
-      }
-    }, 1000);
-  }
-
-  private saveUserSession(user: any): void {
-    // Guardar en localStorage
-    localStorage.setItem('token', 'mock-token-' + Date.now());
-    localStorage.setItem('user', JSON.stringify(user));
-    
-    // Actualizar el estado del AuthService
-    this.authService['userSubject'].next(user);
-    this.authService['tokenSubject'].next('mock-token-' + Date.now());
   }
 
   togglePassword(): void {
     this.showPassword.set(!this.showPassword());
   }
 
-  get email() { return this.loginForm.get('email'); }
-  get password() { return this.loginForm.get('password'); }
+  get email() {
+    return this.loginForm.get('email');
+  }
+
+  get password() {
+    return this.loginForm.get('password');
+  }
 }
