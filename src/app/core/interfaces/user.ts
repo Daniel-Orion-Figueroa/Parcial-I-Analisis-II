@@ -3,5 +3,12 @@ export interface User {
     name: string;
     email: string;
     password: string;
-    type: string;
+    tipoUsuario: TipoUsuario;
+    fechaRegistro: string;
+}
+
+export enum TipoUsuario {
+    ESTUDIANTE = 'ESTUDIANTE',
+    DOCENTE = 'DOCENTE', 
+    ADMIN = 'ADMIN'
 }

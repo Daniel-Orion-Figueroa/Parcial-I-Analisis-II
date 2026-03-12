@@ -1,75 +1,210 @@
 <div class="dashboard">
   <header class="dashboard-header">
-    <div class="welcome-section">
-      <h1>¡Bienvenido, {{ userName() }}! 👋</h1>
-      <p>Gestiona tus préstamos y explora nuestro catálogo</p>
+    <div class="user-info">
+      <span class="role-icon">{{ getRoleIcon() }}</span>
+      <div>
+        <h1>¡Bienvenido, {{ userName() }}! 👋</h1>
+        <p>{{ getWelcomeMessage() }}</p>
+        <span class="user-role" [style.background-color]="getRoleColor()">
+          {{ getRoleDescription() }}
+        </span>
+      </div>
     </div>
   </header>
 
-  <section class="stats-section">
-    <div class="stats-grid">
-      <div class="stat-card stat-active">
-        <div class="stat-icon">📚</div>
-        <div class="stat-info">
-          <h3>{{ activeLoans() }}</h3>
-          <p>Préstamos Activos</p>
-        </div>
-      </div>
-      
-      <div class="stat-card stat-overdue">
-        <div class="stat-icon">⚠️</div>
-        <div class="stat-info">
-          <h3>{{ overdueLoans() }}</h3>
-          <p>Préstamos Vencidos</p>
-        </div>
-      </div>
-      
-      <div class="stat-card stat-reserved">
-        <div class="stat-icon">📋</div>
-        <div class="stat-info">
-          <h3>{{ reservedBooks() }}</h3>
-          <p>Libros Reservados</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="actions-section">
-    <h2>Acciones Rápidas</h2>
-    <div class="actions-grid">
-      <button (click)="navigateToBooks()" class="action-card action-books">
-        <div class="action-icon">📖</div>
-        <div class="action-content">
-          <h3>Explorar Libros</h3>
-          <p>Busca y reserva nuevos libros</p>
-        </div>
-      </button>
-      
-      <button (click)="navigateToLoans()" class="action-card action-loans">
-        <div class="action-icon">📚</div>
-        <div class="action-content">
-          <h3>Mis Préstamos</h3>
-          <p>Gestiona tus préstamos activos</p>
-        </div>
-      </button>
-    </div>
-  </section>
-
-  <section class="activity-section">
-    <h2>Actividad Reciente</h2>
-    <div class="activity-list">
-      @for (activity of recentActivity(); track activity.id) {
-        <div class="activity-item">
-          <div class="activity-icon">{{ getActivityIcon(activity.type) }}</div>
-          <div class="activity-info">
-            <div class="activity-details">
-              <span class="activity-type">{{ getActivityText(activity.type) }}</span>
-              <span class="activity-title">{{ activity.title }}</span>
-            </div>
-            <span class="activity-date">{{ activity.date }}</span>
+  <!-- Dashboard para ESTUDIANTE -->
+  @if (isStudent) {
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card stat-active">
+          <div class="stat-icon">📚</div>
+          <div class="stat-info">
+            <h3>{{ activeLoans() }}</h3>
+            <p>Préstamos Activos</p>
           </div>
         </div>
-      }
-    </div>
-  </section>
+        
+        <div class="stat-card stat-overdue">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-info">
+            <h3>{{ overdueLoans() }}</h3>
+            <p>Préstamos Vencidos</p>
+          </div>
+        </div>
+        
+        <div class="stat-card stat-reserved">
+          <div class="stat-icon">📋</div>
+          <div class="stat-info">
+            <h3>{{ reservedBooks() }}</h3>
+            <p>Libros Reservados</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="actions-section">
+      <h2>Acciones Rápidas</h2>
+      <div class="actions-grid">
+        <button (click)="navigateToBooks()" class="action-card action-books">
+          <div class="action-icon">📖</div>
+          <div class="action-content">
+            <h3>Explorar Libros</h3>
+            <p>Busca y reserva nuevos libros</p>
+          </div>
+        </button>
+        
+        <button (click)="navigateToLoans()" class="action-card action-loans">
+          <div class="action-icon">📚</div>
+          <div class="action-content">
+            <h3>Mis Préstamos</h3>
+            <p>Gestiona tus préstamos activos</p>
+          </div>
+        </button>
+        
+        <button (click)="navigateToReservations()" class="action-card action-reservations">
+          <div class="action-icon">📋</div>
+          <div class="action-content">
+            <h3>Mis Reservas</h3>
+            <p>Revisa tus libros reservados</p>
+          </div>
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- Dashboard para DOCENTE -->
+  @if (isTeacher) {
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card stat-active">
+          <div class="stat-icon">📚</div>
+          <div class="stat-info">
+            <h3>{{ activeLoans() }}</h3>
+            <p>Préstamos Activos</p>
+          </div>
+        </div>
+        
+        <div class="stat-card stat-overdue">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-info">
+            <h3>{{ overdueLoans() }}</h3>
+            <p>Préstamos Vencidos</p>
+          </div>
+        </div>
+        
+        <div class="stat-card stat-reserved">
+          <div class="stat-icon">📋</div>
+          <div class="stat-info">
+            <h3>{{ reservedBooks() }}</h3>
+            <p>Libros Reservados</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="actions-section">
+      <h2>Portal Docente</h2>
+      <div class="actions-grid">
+        <button (click)="navigateToBooks()" class="action-card action-books">
+          <div class="action-icon">📖</div>
+          <div class="action-content">
+            <h3>Explorar Catálogo</h3>
+            <p>Acceso extendido a recursos</p>
+          </div>
+        </button>
+        
+        <button (click)="navigateToLoans()" class="action-card action-loans">
+          <div class="action-icon">📚</div>
+          <div class="action-content">
+            <h3>Mis Préstamos</h3>
+            <p>Gestiona tus préstamos docentes</p>
+          </div>
+        </button>
+        
+        <button (click)="navigateToReservations()" class="action-card action-reservations">
+          <div class="action-icon">📋</div>
+          <div class="action-content">
+            <h3>Reservas</h3>
+            <p>Gestiona tus reservas</p>
+          </div>
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- Dashboard para ADMIN -->
+  @if (isAdmin) {
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card stat-total-books">
+          <div class="stat-icon">📚</div>
+          <div class="stat-info">
+            <h3>{{ totalBooks() }}</h3>
+            <p>Total Libros</p>
+          </div>
+        </div>
+        
+        <div class="stat-card stat-available">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3>{{ availableBooks() }}</h3>
+            <p>Libros Disponibles</p>
+          </div>
+        </div>
+        
+        <div class="stat-card stat-total-users">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <h3>{{ totalUsers() }}</h3>
+            <p>Total Usuarios</p>
+          </div>
+        </div>
+        
+        <div class="stat-card stat-active-loans">
+          <div class="stat-icon">📋</div>
+          <div class="stat-info">
+            <h3>{{ activeLoans() }}</h3>
+            <p>Préstamos Activos</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="actions-section">
+      <h2>Panel de Administración</h2>
+      <div class="actions-grid">
+        <button (click)="navigateToBooksManagement()" class="action-card action-books-management">
+          <div class="action-icon">📚</div>
+          <div class="action-content">
+            <h3>Gestión de Libros</h3>
+            <p>Administra el catálogo completo</p>
+          </div>
+        </button>
+        
+        <button (click)="navigateToUsersManagement()" class="action-card action-users-management">
+          <div class="action-icon">👥</div>
+          <div class="action-content">
+            <h3>Gestión de Usuarios</h3>
+            <p>Administra usuarios y roles</p>
+          </div>
+        </button>
+        
+        <button (click)="navigateToLoansManagement()" class="action-card action-loans-management">
+          <div class="action-icon">📚</div>
+          <div class="action-content">
+            <h3>Gestión de Préstamos</h3>
+            <p>Administra todos los préstamos</p>
+          </div>
+        </button>
+        
+        <button (click)="navigateToReservationsManagement()" class="action-card action-reservations-management">
+          <div class="action-icon">📋</div>
+          <div class="action-content">
+            <h3>Gestión de Reservas</h3>
+            <p>Administra todas las reservas</p>
+          </div>
+        </button>
+      </div>
+    </section>
+  }
 </div>

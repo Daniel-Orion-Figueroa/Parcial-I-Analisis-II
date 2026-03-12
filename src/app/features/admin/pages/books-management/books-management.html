@@ -1,1 +1,220 @@
-<p>books-management works!</p>
+<div class="books-management">
+  <header class="page-header">
+    <h1>Gestión de Libros</h1>
+    <p>Administra el catálogo de libros de la biblioteca</p>
+  </header>
+
+  <!-- Estadísticas -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-icon">📚</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getTotalBooks() }}</div>
+        <div class="stat-label">Total Libros</div>
+      </div>
+    </div>
+    
+    <div class="stat-card available">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getAvailableBooks() }}</div>
+        <div class="stat-label">Disponibles</div>
+      </div>
+    </div>
+    
+    <div class="stat-card unavailable">
+      <div class="stat-icon">❌</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getUnavailableBooks() }}</div>
+        <div class="stat-label">No Disponibles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="actions-section">
+    <button class="btn btn-primary" (click)="onAddBook()">
+      ➕ Agregar Libro
+    </button>
+    
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Buscar libros..." 
+        [value]="searchTerm()"
+        (input)="onSearch({ term: $event.target.value })"
+        class="search-input">
+    </div>
+  </div>
+
+  <!-- Formulario de agregar/editar -->
+  @if (showAddForm()) {
+    <div class="form-overlay">
+      <div class="form-container">
+        <h2>{{ editingBook() ? 'Editar Libro' : 'Agregar Nuevo Libro' }}</h2>
+        
+        <form class="book-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="title">Título *</label>
+              <input 
+                type="text" 
+                id="title" 
+                [value]="formData().title" 
+                (input)="updateFormField('title', $event.target.value)"
+                placeholder="Título del libro"
+                required>
+            </div>
+            
+            <div class="form-group">
+              <label for="author">Autor *</label>
+              <input 
+                type="text" 
+                id="author" 
+                [value]="formData().author"
+                (input)="updateFormField('author', $event.target.value)" 
+                placeholder="Autor del libro"
+                required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editorial">Editorial</label>
+              <input 
+                type="text" 
+                id="editorial" 
+                [value]="formData().editorial"
+                (input)="updateFormField('editorial', $event.target.value)" 
+                placeholder="Editorial">
+            </div>
+            
+            <div class="form-group">
+              <label for="publicationYear">Año Publicación</label>
+              <input 
+                type="number" 
+                id="publicationYear" 
+                [value]="formData().publicationYear"
+                (input)="updateFormField('publicationYear', parseNumber(getInputValue($event)))"
+                placeholder="Año">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="isbn">ISBN</label>
+              <input 
+                type="text" 
+                id="isbn" 
+                [value]="formData().isbn"
+                (input)="updateFormField('isbn', $event.target.value)" 
+                placeholder="ISBN">
+            </div>
+            
+            <div class="form-group">
+              <label for="category">Categoría</label>
+              <input 
+                type="text" 
+                id="category" 
+                [value]="formData().category"
+                (input)="updateFormField('category', $event.target.value)" 
+                placeholder="Categoría">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="totalQuantity">Cantidad Total</label>
+              <input 
+                type="number" 
+                id="totalQuantity" 
+                [value]="formData().totalQuantity"
+                (input)="updateFormField('totalQuantity', parseNumber(getInputValue($event)))"
+                placeholder="Cantidad total"
+                min="1">
+            </div>
+            
+            <div class="form-group">
+              <label for="availableQuantity">Cantidad Disponible</label>
+              <input 
+                type="number" 
+                id="availableQuantity" 
+                [value]="formData().availableQuantity"
+                (input)="updateFormField('availableQuantity', parseNumber(getInputValue($event)))"
+                placeholder="Cantidad disponible"
+                min="0">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea 
+              id="description" 
+              [value]="formData().description"
+              (input)="updateFormField('description', getInputValue($event))" 
+              placeholder="Descripción del libro"
+              rows="3"></textarea>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="onCancelForm()">
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" (click)="onSaveBook()">
+              {{ editingBook() ? 'Actualizar' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Lista de libros -->
+  <div class="books-grid">
+    @for (book of filteredBooks(); track book.id) {
+      <div class="book-card">
+        <div class="book-header">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <span class="book-status" [class.available]="book.availableQuantity > 0">
+            {{ book.availableQuantity > 0 ? 'Disponible' : 'No disponible' }}
+          </span>
+        </div>
+        
+        <div class="book-info">
+          <p class="book-author"><strong>Autor:</strong> {{ book.author }}</p>
+          <p class="book-editorial"><strong>Editorial:</strong> {{ book.editorial }}</p>
+          <p class="book-category"><strong>Categoría:</strong> {{ book.category }}</p>
+          <p class="book-isbn"><strong>ISBN:</strong> {{ book.isbn }}</p>
+          <p class="book-quantity">
+            <strong>Disponibles:</strong> {{ book.availableQuantity }} / {{ book.totalQuantity }}
+          </p>
+        </div>
+        
+        <div class="book-description">
+          <p>{{ book.description }}</p>
+        </div>
+        
+        <div class="book-actions">
+          <button class="btn btn-sm btn-primary" (click)="onEditBook(book)">
+            ✏️ Editar
+          </button>
+          <button class="btn btn-sm btn-danger" (click)="onDeleteBook(book)">
+            🗑️ Eliminar
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Estado vacío -->
+  @if (filteredBooks().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>No se encontraron libros</h3>
+      <p>No hay libros que coincidan con tu búsqueda</p>
+      <button class="btn btn-primary" (click)="onSearch({ term: '' })">
+        Limpiar búsqueda
+      </button>
+    </div>
+  }
+</div>

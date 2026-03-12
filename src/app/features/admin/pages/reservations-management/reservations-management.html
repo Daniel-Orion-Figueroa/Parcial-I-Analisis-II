@@ -1,0 +1,201 @@
+<div class="reservations-management">
+  <header class="page-header">
+    <h1>Gestión de Reservas</h1>
+    <p>Administra todas las reservas de la biblioteca</p>
+  </header>
+
+  <!-- Estadísticas -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getTotalReservations() }}</div>
+        <div class="stat-label">Total Reservas</div>
+      </div>
+    </div>
+    
+    <div class="stat-card active">
+      <div class="stat-icon">📚</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getActiveReservations() }}</div>
+        <div class="stat-label">Reservas Activas</div>
+      </div>
+    </div>
+    
+    <div class="stat-card completed">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getCompletedReservations() }}</div>
+        <div class="stat-label">Reservas Completadas</div>
+      </div>
+    </div>
+    
+    <div class="stat-card expired">
+      <div class="stat-icon">⏰</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getExpiredReservations() }}</div>
+        <div class="stat-label">Reservas Expiradas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="actions-section">
+    <button class="btn btn-primary" (click)="onAddReservation()">
+      ➕ Nueva Reserva
+    </button>
+    
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Buscar reservas..." 
+        [value]="searchTerm()"
+        (input)="onSearch({ term: $event.target.value })"
+        class="search-input">
+    </div>
+  </div>
+
+  <!-- Formulario de agregar/editar -->
+  @if (showAddForm()) {
+    <div class="form-overlay">
+      <div class="form-container">
+        <h2>{{ editingReservation() ? 'Editar Reserva' : 'Agregar Nueva Reserva' }}</h2>
+        
+        <form class="reservation-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bookId">Libro *</label>
+              <select 
+                id="bookId"
+                [value]="formData().bookId"
+                (change)="updateFormField('bookId', getInputValue($event))"
+                required>
+                <option value="">Selecciona un libro</option>
+                @for (book of books(); track book.id) {
+                  <option [value]="book.id">
+                    {{ book.title }} - {{ book.author }}
+                  </option>
+                }
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="userId">Usuario *</label>
+              <select 
+                id="userId"
+                [value]="formData().userId"
+                (change)="updateFormField('userId', getInputValue($event))"
+                required>
+                <option value="">Selecciona un usuario</option>
+                @for (user of users(); track user.id) {
+                  <option [value]="user.id">
+                    {{ user.name }} - {{ user.email }} ({{ user.tipoUsuario }})
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fechaReserva">Fecha de Reserva *</label>
+              <input 
+                type="date" 
+                id="fechaReserva" 
+                [value]="formData().fechaReserva"
+                (input)="updateFormField('fechaReserva', getInputValue($event))"
+                required>
+            </div>
+            
+            <div class="form-group">
+              <label for="fechaExpiracion">Fecha de Expiración *</label>
+              <input 
+                type="date" 
+                id="fechaExpiracion" 
+                [value]="formData().fechaExpiracion"
+                (input)="updateFormField('fechaExpiracion', getInputValue($event))"
+                required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="estado">Estado *</label>
+              <select 
+                id="estado"
+                [value]="formData().estado"
+                (change)="updateFormField('estado', getInputValue($event))"
+                required>
+                <option value="ACTIVA">📋 ACTIVA</option>
+                <option value="COMPLETADA">✅ COMPLETADA</option>
+                <option value="CANCELADA">❌ CANCELADA</option>
+                <option value="EXPIRADA">⏰ EXPIRADA</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="onCancelForm()">
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" (click)="onSaveReservation()">
+              {{ editingReservation() ? 'Actualizar' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Lista de reservas -->
+  <div class="reservations-grid">
+    @for (reservation of filteredReservations(); track reservation.id) {
+      <div class="reservation-card">
+        <div class="reservation-header">
+          <div class="book-info">
+            <h3 class="book-title">{{ reservation.bookTitle }}</h3>
+            <span class="reservation-status" [style.background-color]="getStatusColor(reservation.estado)">
+              {{ getStatusIcon(reservation.estado) }} {{ reservation.estado }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="reservation-details">
+          <p class="user-info">
+            <strong>👤 Usuario:</strong> {{ reservation.userName }}
+          </p>
+          <p class="user-email">
+            <strong>📧 Email:</strong> {{ reservation.userEmail }}
+          </p>
+          <p class="reservation-dates">
+            <strong>📅 Reserva:</strong> {{ reservation.fechaReserva }}
+          </p>
+          <p class="expiration-date">
+            <strong>⏰ Expiración:</strong> {{ reservation.fechaExpiracion }}
+          </p>
+        </div>
+        
+        <div class="reservation-actions">
+          <button class="btn btn-sm btn-primary" (click)="onEditReservation(reservation)">
+            ✏️ Editar
+          </button>
+          <button class="btn btn-sm btn-danger" (click)="onDeleteReservation(reservation)">
+            🗑️ Eliminar
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Estado vacío -->
+  @if (filteredReservations().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>No se encontraron reservas</h3>
+      <p>No hay reservas que coincidan con tu búsqueda</p>
+      <button class="btn btn-primary" (click)="onSearch({ term: '' })">
+        Limpiar búsqueda
+      </button>
+    </div>
+  }
+</div>

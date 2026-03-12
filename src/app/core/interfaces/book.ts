@@ -4,8 +4,10 @@ export interface Book {
     author: string;
     editorial: string;
     publicationYear: number;
+    isbn: string;
     category: string;
-    availableAmount: number;
+    totalQuantity: number;
+    availableQuantity: number;
     description: string;
-    imgUrl: string;
+    imageUrl: string;
 }

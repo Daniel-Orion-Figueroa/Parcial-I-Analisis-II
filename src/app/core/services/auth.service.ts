@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { User } from '../../core/interfaces/user';
+import { User, TipoUsuario } from '../../core/interfaces/user';
 import { API_ENDPOINTS } from '../constants/api-endpoints.constants';
 
 @Injectable({
@@ -139,5 +139,43 @@ export class AuthService {
    */
   getCurrentToken(): string | null {
     return this.tokenSubject.value;
+  }
+
+  /**
+   * Verificar si el usuario es admin
+   */
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user?.tipoUsuario === TipoUsuario.ADMIN;
+  }
+
+  /**
+   * Verificar si el usuario es docente
+   */
+  isDocente(): boolean {
+    const user = this.getCurrentUser();
+    return user?.tipoUsuario === TipoUsuario.DOCENTE;
+  }
+
+  /**
+   * Verificar si el usuario es estudiante
+   */
+  isEstudiante(): boolean {
+    const user = this.getCurrentUser();
+    return user?.tipoUsuario === TipoUsuario.ESTUDIANTE;
+  }
+
+  /**
+   * Actualizar manualmente el usuario actual (para registro)
+   */
+  updateUser(user: User): void {
+    this.userSubject.next(user);
+  }
+
+  /**
+   * Actualizar manualmente el token actual (para registro)
+   */
+  updateToken(token: string): void {
+    this.tokenSubject.next(token);
   }
 }

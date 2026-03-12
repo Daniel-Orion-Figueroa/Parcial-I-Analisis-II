@@ -11,7 +11,7 @@ export const adminGuard: CanActivateFn = () => {
 
   const user = authService.getCurrentUser();
 
-  if (user && user.type === USER_TYPES.ADMIN) {
+  if (user && user.tipoUsuario === USER_TYPES.ADMIN) {
     return true;
   }
 

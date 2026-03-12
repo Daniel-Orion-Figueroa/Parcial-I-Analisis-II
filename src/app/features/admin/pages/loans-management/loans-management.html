@@ -1,0 +1,203 @@
+<div class="loans-management">
+  <header class="page-header">
+    <h1>Gestión de Préstamos</h1>
+    <p>Administra todos los préstamos de la biblioteca</p>
+  </header>
+
+  <!-- Estadísticas -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-icon">📚</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getTotalLoans() }}</div>
+        <div class="stat-label">Total Préstamos</div>
+      </div>
+    </div>
+    
+    <div class="stat-card active">
+      <div class="stat-icon">📖</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getActiveLoans() }}</div>
+        <div class="stat-label">Préstamos Activos</div>
+      </div>
+    </div>
+    
+    <div class="stat-card overdue">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getOverdueLoans() }}</div>
+        <div class="stat-label">Préstamos Vencidos</div>
+      </div>
+    </div>
+    
+    <div class="stat-card returned">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ getReturnedLoans() }}</div>
+        <div class="stat-label">Préstamos Devueltos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="actions-section">
+    <button class="btn btn-primary" (click)="onAddLoan()">
+      ➕ Nuevo Préstamo
+    </button>
+    
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Buscar préstamos..." 
+        [value]="searchTerm()"
+        (input)="onSearch({ term: $event.target.value })"
+        class="search-input">
+    </div>
+  </div>
+
+  <!-- Formulario de agregar/editar -->
+  @if (showAddForm()) {
+    <div class="form-overlay">
+      <div class="form-container">
+        <h2>{{ editingLoan() ? 'Editar Préstamo' : 'Agregar Nuevo Préstamo' }}</h2>
+        
+        <form class="loan-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bookId">Libro *</label>
+              <select 
+                id="bookId"
+                [value]="formData().bookId"
+                (change)="updateFormField('bookId', getInputValue($event))"
+                required>
+                <option value="">Selecciona un libro</option>
+                @for (book of books(); track book.id) {
+                  <option [value]="book.id" [disabled]="!book.disponible && !editingLoan()">
+                    {{ book.title }} - {{ book.author }}
+                    @if (!book.disponible && !editingLoan()) {
+                      (No disponible)
+                    }
+                  </option>
+                }
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="userId">Usuario *</label>
+              <select 
+                id="userId"
+                [value]="formData().userId"
+                (change)="updateFormField('userId', getInputValue($event))"
+                required>
+                <option value="">Selecciona un usuario</option>
+                @for (user of users(); track user.id) {
+                  <option [value]="user.id">
+                    {{ user.name }} - {{ user.email }} ({{ user.tipoUsuario }})
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fechaPrestamo">Fecha de Préstamo *</label>
+              <input 
+                type="date" 
+                id="fechaPrestamo" 
+                [value]="formData().fechaPrestamo"
+                (input)="updateFormField('fechaPrestamo', getInputValue($event))"
+                required>
+            </div>
+            
+            <div class="form-group">
+              <label for="fechaDevolucion">Fecha de Devolución *</label>
+              <input 
+                type="date" 
+                id="fechaDevolucion" 
+                [value]="formData().fechaDevolucion"
+                (input)="updateFormField('fechaDevolucion', getInputValue($event))"
+                required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="estado">Estado *</label>
+              <select 
+                id="estado"
+                [value]="formData().estado"
+                (change)="updateFormField('estado', getInputValue($event))"
+                required>
+                <option value="ACTIVO">📚 ACTIVO</option>
+                <option value="DEVUELTO">✅ DEVUELTO</option>
+                <option value="VENCIDO">⚠️ VENCIDO</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="onCancelForm()">
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" (click)="onSaveLoan()">
+              {{ editingLoan() ? 'Actualizar' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Lista de préstamos -->
+  <div class="loans-grid">
+    @for (loan of filteredLoans(); track loan.id) {
+      <div class="loan-card">
+        <div class="loan-header">
+          <div class="book-info">
+            <h3 class="book-title">{{ loan.bookTitle }}</h3>
+            <span class="loan-status" [style.background-color]="getStatusColor(loan.estado)">
+              {{ getStatusIcon(loan.estado) }} {{ loan.estado }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="loan-details">
+          <p class="user-info">
+            <strong>👤 Usuario:</strong> {{ loan.userName }}
+          </p>
+          <p class="user-email">
+            <strong>📧 Email:</strong> {{ loan.userEmail }}
+          </p>
+          <p class="loan-dates">
+            <strong>📅 Préstamo:</strong> {{ loan.fechaPrestamo }}
+          </p>
+          <p class="loan-due-date">
+            <strong>📅 Devolución:</strong> {{ loan.fechaDevolucion }}
+          </p>
+        </div>
+        
+        <div class="loan-actions">
+          <button class="btn btn-sm btn-primary" (click)="onEditLoan(loan)">
+            ✏️ Editar
+          </button>
+          <button class="btn btn-sm btn-danger" (click)="onDeleteLoan(loan)">
+            🗑️ Eliminar
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Estado vacío -->
+  @if (filteredLoans().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>No se encontraron préstamos</h3>
+      <p>No hay préstamos que coincidan con tu búsqueda</p>
+      <button class="btn btn-primary" (click)="onSearch({ term: '' })">
+        Limpiar búsqueda
+      </button>
+    </div>
+  }
+</div>

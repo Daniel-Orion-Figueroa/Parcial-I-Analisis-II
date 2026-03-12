@@ -92,6 +92,28 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label for="tipoUsuario">Tipo de usuario</label>
+        <select
+          id="tipoUsuario"
+          formControlName="tipoUsuario"
+          class="form-select"
+          [class.error]="tipoUsuario?.invalid && tipoUsuario?.touched"
+        >
+          @for (tipo of userTypes; track tipo) {
+            <option [value]="tipo">
+              {{ getRoleIcon(tipo) }} {{ tipo }}
+            </option>
+          }
+        </select>
+        <div class="role-description" *ngIf="tipoUsuario?.value">
+          <small>{{ getRoleDescription(tipoUsuario?.value) }}</small>
+        </div>
+        <div class="error-message" *ngIf="tipoUsuario?.invalid && tipoUsuario?.touched">
+          <span *ngIf="tipoUsuario?.errors?.['required']">Selecciona un tipo de usuario</span>
+        </div>
+      </div>
+
       <div class="form-actions">
         <button
           type="submit"

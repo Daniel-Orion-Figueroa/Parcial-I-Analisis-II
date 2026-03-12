@@ -1,4 +1,4 @@
-.users-management {
+.reservations-management {
   padding: 24px 16px;
   max-width: 1200px;
   margin: 0 auto;
@@ -45,15 +45,15 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.stat-card.student {
+.stat-card.active {
   border-left: 4px solid #28a745;
 }
 
-.stat-card.teacher {
+.stat-card.completed {
   border-left: 4px solid #007bff;
 }
 
-.stat-card.admin {
+.stat-card.expired {
   border-left: 4px solid #dc3545;
 }
 
@@ -198,7 +198,7 @@
   text-align: center;
 }
 
-.user-form {
+.reservation-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -245,13 +245,13 @@
   margin-top: 20px;
 }
 
-.users-grid {
+.reservations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 24px;
 }
 
-.user-card {
+.reservation-card {
   background: white;
   border-radius: 12px;
   padding: 24px;
@@ -260,46 +260,33 @@
   border: 2px solid transparent;
 }
 
-.user-card:hover {
+.reservation-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border-color: #667eea;
 }
 
-.user-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.reservation-header {
   margin-bottom: 16px;
 }
 
-.user-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #f8f9fa;
+.book-info {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.avatar-icon {
-  font-size: 28px;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
+.book-title {
   font-size: 18px;
   font-weight: 600;
   color: #333;
-  margin: 0 0 8px 0;
+  margin: 0;
+  flex: 1;
+  line-height: 1.3;
 }
 
-.user-role {
+.reservation-status {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 12px;
@@ -308,24 +295,25 @@
   text-transform: uppercase;
   color: white;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.user-details {
+.reservation-details {
   margin-bottom: 16px;
 }
 
-.user-details p {
+.reservation-details p {
   margin: 4px 0;
   font-size: 14px;
   color: #666;
   line-height: 1.4;
 }
 
-.user-details strong {
+.reservation-details strong {
   color: #333;
 }
 
-.user-actions {
+.reservation-actions {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
@@ -355,7 +343,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .users-management {
+  .reservations-management {
     padding: 16px 8px;
   }
   
@@ -381,28 +369,27 @@
     grid-template-columns: 1fr;
   }
   
-  .users-grid {
+  .reservations-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
   
-  .user-card {
+  .reservation-card {
     padding: 20px;
   }
   
-  .user-header {
+  .book-info {
     flex-direction: column;
-    text-align: center;
-    gap: 12px;
+    gap: 8px;
   }
   
-  .user-actions {
+  .reservation-actions {
     flex-direction: column;
   }
 }
 
 @media (max-width: 480px) {
-  .users-management {
+  .reservations-management {
     padding: 12px 4px;
   }
   
@@ -414,7 +401,7 @@
     padding: 24px 16px;
   }
   
-  .user-card {
+  .reservation-card {
     padding: 16px;
   }
   

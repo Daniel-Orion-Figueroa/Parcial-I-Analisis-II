@@ -1,5 +1,5 @@
 export const USER_TYPES = {
-    STUDENT: 'STUDENT',
-    TEACHER: 'TEACHER',
+    ESTUDIANTE: 'ESTUDIANTE',
+    DOCENTE: 'DOCENTE',
     ADMIN: 'ADMIN'
 }

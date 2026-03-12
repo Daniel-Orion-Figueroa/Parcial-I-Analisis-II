@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Loan, LoanStatus } from '../../../../core/interfaces/loan';
 
 @Component({
   selector: 'app-loan-card',
@@ -9,24 +10,22 @@ import { CommonModule } from '@angular/common';
   standalone: true
 })
 export class LoanCard {
-  @Input() loan: any;
+  @Input() loan!: Loan;
   @Input() compact: boolean = false;
   @Input() showActions: boolean = true;
   
-  @Output() renew = new EventEmitter<any>();
-  @Output() returnBook = new EventEmitter<any>();
-  @Output() viewDetails = new EventEmitter<any>();
+  @Output() renew = new EventEmitter<Loan>();
+  @Output() returnBook = new EventEmitter<Loan>();
+  @Output() viewDetails = new EventEmitter<Loan>();
 
   getStatusClass(): string {
     switch (this.loan?.status) {
-      case 'active':
+      case LoanStatus.ACTIVE:
         return 'status-active';
-      case 'overdue':
+      case LoanStatus.LATE:
         return 'status-overdue';
-      case 'returned':
+      case LoanStatus.RETURNED:
         return 'status-returned';
-      case 'renewed':
-        return 'status-renewed';
       default:
         return 'status-unknown';
     }
@@ -34,14 +33,12 @@ export class LoanCard {
 
   getStatusText(): string {
     switch (this.loan?.status) {
-      case 'active':
+      case LoanStatus.ACTIVE:
         return 'Activo';
-      case 'overdue':
+      case LoanStatus.LATE:
         return 'Vencido';
-      case 'returned':
+      case LoanStatus.RETURNED:
         return 'Devuelto';
-      case 'renewed':
-        return 'Renovado';
       default:
         return 'Desconocido';
     }
@@ -49,25 +46,23 @@ export class LoanCard {
 
   getStatusIcon(): string {
     switch (this.loan?.status) {
-      case 'active':
+      case LoanStatus.ACTIVE:
         return '📚';
-      case 'overdue':
+      case LoanStatus.LATE:
         return '⚠️';
-      case 'returned':
+      case LoanStatus.RETURNED:
         return '✅';
-      case 'renewed':
-        return '🔄';
       default:
         return '❓';
     }
   }
 
   getDaysRemaining(): number {
-    if (!this.loan?.dueDate) return 0;
+    if (!this.loan?.returnDate) return 0;
     
-    const dueDate = new Date(this.loan.dueDate);
+    const returnDate = new Date(this.loan.returnDate);
     const today = new Date();
-    const diffTime = dueDate.getTime() - today.getTime();
+    const diffTime = returnDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays;
@@ -90,13 +85,12 @@ export class LoanCard {
   }
 
   canRenew(): boolean {
-    return this.loan?.status === 'active' && 
-           this.getDaysRemaining() <= 3 && 
-           this.loan.renewals < 3;
+    return this.loan?.status === LoanStatus.ACTIVE && 
+           this.getDaysRemaining() <= 3;
   }
 
   canReturn(): boolean {
-    return this.loan?.status === 'active' || this.loan?.status === 'overdue';
+    return this.loan?.status === LoanStatus.ACTIVE || this.loan?.status === LoanStatus.LATE;
   }
 
   onRenew(): void {

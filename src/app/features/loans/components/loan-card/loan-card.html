@@ -1,8 +1,8 @@
 <div class="loan-card" [class.compact]="compact" [class.overdue]="isOverdue()">
   <div class="loan-header">
     <div class="book-info">
-      <h3 class="book-title">{{ loan.bookTitle }}</h3>
-      <p class="book-author">{{ loan.bookAuthor }}</p>
+      <h3 class="book-title">{{ loan.book.title }}</h3>
+      <p class="book-author">{{ loan.book.author }}</p>
     </div>
     <div class="loan-status">
       <span class="status-badge" [class]="getStatusClass()">
@@ -19,18 +19,12 @@
     </div>
     <div class="detail-row">
       <span class="label">Fecha de devolución:</span>
-      <span class="value" [class.overdue]="isOverdue()">{{ loan.dueDate }}</span>
+      <span class="value" [class.overdue]="isOverdue()">{{ loan.returnDate }}</span>
     </div>
     <div class="detail-row days-remaining" [class.overdue]="isOverdue()">
       <span class="label">Tiempo restante:</span>
       <span class="value">{{ getDaysText() }}</span>
     </div>
-    @if (!compact) {
-      <div class="detail-row">
-        <span class="label">Renovaciones:</span>
-        <span class="value">{{ loan.renewals }}/3</span>
-      </div>
-    }
   </div>
 
   @if (showActions) {
@@ -47,7 +41,7 @@
         </button>
       }
       
-      @if (loan.status === 'returned') {
+      @if (loan.status === 'RETURNED') {
         <button class="btn btn-details" (click)="onViewDetails()" title="Ver detalles">
           📋 Detalles
         </button>
