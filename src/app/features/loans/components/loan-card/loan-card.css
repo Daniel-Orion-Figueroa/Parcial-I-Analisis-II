@@ -1,0 +1,319 @@
+.loan-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.loan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.loan-card.overdue {
+  border-color: #dc3545;
+  background: linear-gradient(135deg, #fff8f8 0%, white 100%);
+}
+
+.loan-card.compact {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.loan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.book-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-author {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.loan-status {
+  flex-shrink: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.status-icon {
+  font-size: 14px;
+}
+
+.status-text {
+  font-size: 11px;
+}
+
+.status-active {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.status-overdue {
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+.status-returned {
+  background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+  color: white;
+}
+
+.status-renewed {
+  background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+  color: white;
+}
+
+.status-unknown {
+  background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+  color: white;
+}
+
+.loan-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.detail-row .label {
+  color: #666;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.detail-row .value {
+  color: #333;
+  font-weight: 600;
+  text-align: right;
+}
+
+.detail-row .value.overdue {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+.detail-row.days-remaining {
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.detail-row.days-remaining.overdue {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.detail-row.days-remaining .label {
+  font-weight: 600;
+}
+
+.detail-row.days-remaining .value {
+  font-weight: 700;
+}
+
+.loan-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 100px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-renew {
+  background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+  color: white;
+}
+
+.btn-renew:hover {
+  background: linear-gradient(135deg, #138496 0%, #0056b3 100%);
+}
+
+.btn-return {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-return:hover {
+  background: linear-gradient(135deg, #1e7e34 0%, #1a7f57 100%);
+}
+
+.btn-details {
+  background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+  color: white;
+}
+
+.btn-details:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #6c757d 100%);
+}
+
+.overdue-warning {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+  color: white;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .loan-card {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .loan-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .book-info {
+    text-align: center;
+  }
+  
+  .loan-status {
+    align-self: center;
+  }
+  
+  .book-title {
+    font-size: 16px;
+    white-space: normal;
+    overflow: visible;
+  }
+  
+  .loan-actions {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .loan-card {
+    padding: 12px;
+  }
+  
+  .loan-card.compact {
+    padding: 10px;
+  }
+  
+  .book-title {
+    font-size: 15px;
+  }
+  
+  .book-author {
+    font-size: 13px;
+  }
+  
+  .detail-row {
+    font-size: 13px;
+  }
+  
+  .btn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .overdue-warning {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+}
