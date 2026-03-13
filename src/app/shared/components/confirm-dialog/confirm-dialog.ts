@@ -13,25 +13,38 @@ export class ConfirmDialog {
   @Input() message: string = '¿Estás seguro de realizar esta acción?';
   @Input() confirmText: string = 'Confirmar';
   @Input() cancelText: string = 'Cancelar';
-  @Input() type: 'danger' | 'warning' | 'info' = 'danger';
+  @Input() type: 'danger' | 'warning' | 'info' | 'success' = 'danger';
   @Input() isOpen: boolean = false;
+  @Input() isLoading: boolean = false;
   
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
   @Output() close = new EventEmitter<void>();
 
   onConfirm(): void {
-    this.confirm.emit();
-    this.closeDialog();
+    if (!this.isLoading) {
+      this.confirm.emit();
+      this.closeDialog();
+    }
   }
 
   onCancel(): void {
-    this.cancel.emit();
-    this.closeDialog();
+    if (!this.isLoading) {
+      this.cancel.emit();
+      this.closeDialog();
+    }
   }
 
   closeDialog(): void {
-    this.close.emit();
+    if (!this.isLoading) {
+      this.close.emit();
+    }
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget && !this.isLoading) {
+      this.onCancel();
+    }
   }
 
   getDialogClass(): string {
@@ -40,5 +53,9 @@ export class ConfirmDialog {
 
   getConfirmButtonClass(): string {
     return `btn btn--confirm btn--${this.type}`;
+  }
+
+  getCancelButtonClass(): string {
+    return `btn btn--cancel`;
   }
 }

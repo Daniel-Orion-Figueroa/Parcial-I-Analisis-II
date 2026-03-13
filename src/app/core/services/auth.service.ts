@@ -80,15 +80,25 @@ export class AuthService {
       .post<any>(`${this.apiUrl}${API_ENDPOINTS.AUTH.REGISTER}`, userData)
       .pipe(
         tap((response) => {
-          // El backend devuelve: { message: "User registered successfully", data: User }
-          const user = response.data;
-
+          console.log('AuthService: Registro exitoso:', response);
+          
+          // El backend devuelve: { message: "User registered successfully", data: {token: string, user: User} }
+          const authData = response.data;
+          
           if (this.isBrowser()) {
-            localStorage.setItem('user', JSON.stringify(user));
+            // Guardar el token
+            if (authData.token) {
+              localStorage.setItem('token', authData.token);
+              console.log('AuthService: Token guardado después del registro');
+            }
+            
+            // Guardar el usuario
+            if (authData.user) {
+              localStorage.setItem('user', JSON.stringify(authData.user));
+              this.userSubject.next(authData.user);
+              console.log('AuthService: Usuario guardado después del registro:', authData.user);
+            }
           }
-
-          this.userSubject.next(user);
-
         })
       );
   }
@@ -126,10 +136,12 @@ export class AuthService {
               // Extraer información básica del token JWT (email y rol)
               const payload = JSON.parse(atob(token.split('.')[1]));
               console.log('AuthService: Payload del token:', payload);
+              console.log('AuthService: Payload.sub:', payload.sub);
+              console.log('AuthService: Payload completo:', JSON.stringify(payload, null, 2));
               
               user = {
-                id: payload.sub || 0, // Usar el subject (email) como id temporal
-                name: payload.name || payload.sub.split('@')[0] || 'Usuario', // Usar email como nombre si no hay 'name'
+                id: payload.userId || 0, // Usar el ID real del usuario del token
+                name: payload.name || payload.sub.split('@')[0] || 'Usuario', // Usar el nombre del token
                 email: payload.sub || payload.email || '',
                 password: '',
                 tipoUsuario: payload.role || 'ESTUDIANTE',

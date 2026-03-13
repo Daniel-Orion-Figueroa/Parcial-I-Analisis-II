@@ -2,13 +2,10 @@ import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder } from '@angular/forms';
-
 import { Reservation, ReservationStatus } from '../../../../core/interfaces/reservation';
-import { User } from '../../../../core/interfaces/user';
-import { Book } from '../../../../core/interfaces/book';
 import { ReservationService } from '../../../../core/services/reservation.service';
-import { UserService } from '../../../../core/services/user.service';
 import { BookService } from '../../../../core/services/book.service';
+import { UserService } from '../../../../core/services/user.service';
 
 @Component({
   selector: 'app-reservations-management',
@@ -21,112 +18,118 @@ export class ReservationsManagementComponent implements OnInit {
   reservations = signal<Reservation[]>([]);
   filteredReservations = signal<Reservation[]>([]);
   searchTerm = signal('');
+  statusFilter = signal('all');
   isLoading = signal(false);
   showAddForm = signal(false);
   editingReservation = signal<Reservation | null>(null);
   formData = signal<Partial<Reservation>>({});
 
-  // Datos reales de usuarios y libros
-  users = signal<User[]>([]);
-  books = signal<Book[]>([]);
+  books = signal<any[]>([]);
+  users = signal<any[]>([]);
 
   constructor(
     private fb: FormBuilder, 
     private router: Router,
     private reservationService: ReservationService,
-    private userService: UserService,
-    private bookService: BookService
+    private bookService: BookService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
     this.loadReservations();
-    this.loadUsers();
     this.loadBooks();
+    this.loadUsers();
   }
 
   loadReservations(): void {
+    console.log('ReservationsManagement: Iniciando carga de reservas...');
     this.isLoading.set(true);
     
-    // Cargar reservaciones desde la API REAL
+    // Primero probamos la conexión al backend
+    console.log('ReservationsManagement: Probando conexión al backend...');
+    
     this.reservationService.getAllReservations().subscribe({
-      next: (reservations) => {
-        console.log('ReservationsManagement: Reservas cargadas:', reservations);
-        this.reservations.set(reservations);
-        this.filteredReservations.set(reservations);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading reservations:', error);
-        this.isLoading.set(false);
-      }
-    });
-  }
-
-  loadUsers(): void {
-    // Cargar usuarios desde la API REAL
-    this.userService.getUsers().subscribe({
-      next: (users) => {
-        console.log('ReservationsManagement: Usuarios cargados:', users);
-        this.users.set(users);
-      },
-      error: (error) => {
-        console.error('Error loading users:', error);
-        console.error('Error details:', error.status, error.statusText);
+      next: (reservations: Reservation[]) => {
+        console.log('ReservationsManagement: ✅ Conexión exitosa al backend');
+        console.log('ReservationsManagement: Todas las reservas (incluyendo canceladas):', reservations);
         
-        // Si hay error de serialización o 403, mostrar mensaje claro
-        if (error.status === 200 && error.statusText === 'Unknown Error') {
-          alert('Error de serialización en el backend al cargar usuarios. Hay referencias circulares en las entidades.');
-          this.users.set([]);
-        } else if (error.status === 403) {
-          alert('Error 403 Forbidden - No tienes permisos para cargar usuarios. Verifica tu token de autenticación.');
-          this.users.set([]);
+        // Filtrar solo reservas que no estén canceladas
+        const activeReservations = reservations.filter(r => r.status !== 'CANCELLED');
+        console.log('ReservationsManagement: Reservas activas (filtradas):', activeReservations);
+        console.log('ReservationsManagement: Número de reservas activas:', activeReservations?.length || 0);
+        
+        this.reservations.set(activeReservations || []);
+        this.filteredReservations.set(activeReservations || []);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.error('ReservationsManagement: ❌ Error de conexión al backend:', error);
+        console.error('ReservationsManagement: Status:', error.status);
+        console.error('ReservationsManagement: StatusText:', error.statusText);
+        console.error('ReservationsManagement: URL:', error.url);
+        
+        this.isLoading.set(false);
+        this.reservations.set([]);
+        this.filteredReservations.set([]);
+        
+        // Mostrar error más específico
+        if (error.status === 0) {
+          alert('❌ Error: No se puede conectar al backend. Asegúrate de que el servidor Spring Boot esté corriendo en http://localhost:8080');
+        } else {
+          alert(`❌ Error del servidor: ${error.status} - ${error.statusText}`);
         }
       }
     });
   }
 
   loadBooks(): void {
-    // Cargar libros desde la API REAL
     this.bookService.getBooks().subscribe({
       next: (books) => {
         console.log('ReservationsManagement: Libros cargados:', books);
         this.books.set(books);
       },
       error: (error) => {
-        console.error('Error loading books:', error);
-        console.error('Error details:', error.status, error.statusText);
-        
-        // Si hay error de serialización, mostrar mensaje claro
-        if (error.status === 200 && error.statusText === 'Unknown Error') {
-          alert('Error de serialización en el backend al cargar libros. Hay referencias circulares en las entidades.');
-          this.books.set([]);
-        }
+        console.error('ReservationsManagement: Error cargando libros:', error);
+        this.books.set([]);
       }
     });
   }
 
-  onSearch(searchData: { term: string }): void {
-    const term = searchData.term.toLowerCase();
-    this.searchTerm.set(term);
-    
-    const filtered = this.reservations().filter(reservation => 
-      reservation.book.title.toLowerCase().includes(term) ||
-      reservation.user.name.toLowerCase().includes(term) ||
-      reservation.user.email.toLowerCase().includes(term) ||
-      reservation.status.toLowerCase().includes(term)
-    );
-    
+  loadUsers(): void {
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        console.log('ReservationsManagement: Usuarios cargados:', users);
+        this.users.set(users);
+      },
+      error: (error) => {
+        console.error('ReservationsManagement: Error cargando usuarios:', error);
+        this.users.set([]);
+      }
+    });
+  }
+
+  onSearch(searchData: { term: string; filter?: string }): void {
+    const reservations = this.reservations();
+    let filtered = reservations;
+
+    if (searchData.term) {
+      filtered = filtered.filter(reservation =>
+        reservation.book.title.toLowerCase().includes(searchData.term.toLowerCase()) ||
+        reservation.book.author.toLowerCase().includes(searchData.term.toLowerCase()) ||
+        reservation.user.name.toLowerCase().includes(searchData.term.toLowerCase())
+      );
+    }
+
+    if (searchData.filter && searchData.filter !== 'all') {
+      filtered = filtered.filter(reservation => reservation.status === searchData.filter);
+    }
+
     this.filteredReservations.set(filtered);
   }
 
   onAddReservation(): void {
     this.editingReservation.set(null);
-    this.formData.set({
-      book: { id: 0 } as Book,
-      user: { id: 0 } as User,
-      reservationDate: new Date().toISOString().split('T')[0],
-      status: ReservationStatus.ACTIVE
-    });
+    this.formData.set({});
     this.showAddForm.set(true);
   }
 
@@ -138,19 +141,31 @@ export class ReservationsManagementComponent implements OnInit {
   }
 
   onDeleteReservation(reservation: Reservation): void {
+    console.log('ReservationsManagement: Iniciando eliminación de reserva:', reservation);
+    
     if (confirm(`¿Estás seguro de eliminar la reserva de "${reservation.book.title}"?`)) {
+      console.log('ReservationsManagement: Usuario confirmó eliminación');
+      console.log('ReservationsManagement: Eliminando reserva con ID:', reservation.id);
+      console.log('ReservationsManagement: Reservas antes de eliminar:', this.reservations());
+      
       // ELIMINAR CON API REAL
       this.reservationService.deleteReservation(reservation.id).subscribe({
-        next: () => {
-          const currentReservations = this.reservations().filter(r => r.id !== reservation.id);
-          this.reservations.set(currentReservations);
-          this.filteredReservations.set(currentReservations);
+        next: (response) => {
+          console.log('ReservationsManagement: Respuesta de eliminación del servicio:', response);
+          console.log('ReservationsManagement: Eliminación completada, recargando datos...');
+          
+          // RECARGAR DATOS DESDE BACKEND para sincronizar
+          this.loadReservations();
           alert('Reserva eliminada exitosamente');
         },
         error: (error) => {
-          console.error('Error deleting reservation:', error);
+          console.error('ReservationsManagement: Error deleting reservation:', error);
+          console.error('ReservationsManagement: Error details:', error);
+          alert('Error al eliminar reserva: ' + (error.error?.message || error.message || 'Error desconocido'));
         }
       });
+    } else {
+      console.log('ReservationsManagement: Usuario canceló eliminación');
     }
   }
 
@@ -158,40 +173,67 @@ export class ReservationsManagementComponent implements OnInit {
     console.log('ReservationsManagement: Guardando reserva:', this.formData());
     
     // Preparar datos para el backend - solo IDs y campos simples
-    const reservationData = {
+    const reservationData: any = {
       bookId: this.formData().book?.id || 0,
       userId: this.formData().user?.id || 0,
       reservationDate: this.formData().reservationDate || new Date().toISOString().split('T')[0],
-      status: (this.formData().status || 'ACTIVE') as ReservationStatus
+      status: (this.formData().status || ReservationStatus.ACTIVE)
     };
     
     console.log('ReservationsManagement: Datos a enviar al backend:', reservationData);
+    console.log('ReservationsManagement: bookId:', reservationData.bookId);
+    console.log('ReservationsManagement: userId:', reservationData.userId);
+    console.log('ReservationsManagement: reservationDate:', reservationData.reservationDate);
+    console.log('ReservationsManagement: status:', reservationData.status);
     
     if (this.editingReservation()) {
       // Editar reserva existente - API REAL
-      this.reservationService.updateReservation(this.editingReservation()!.id, reservationData).subscribe({
+      const reservationId = this.editingReservation()!.id;
+      console.log('ReservationsManagement: Editando reserva ID:', reservationId);
+      console.log('ReservationsManagement: URL será:', `PUT /reservations/${reservationId}`);
+      
+      this.reservationService.updateReservation(reservationId, reservationData).subscribe({
         next: (updatedReservation) => {
+          console.log('ReservationsManagement: ✅ Reserva actualizada exitosamente:', updatedReservation);
           const reservations = this.reservations().map(r =>
             r.id === updatedReservation.id ? updatedReservation : r
           );
           this.reservations.set(reservations);
           this.filteredReservations.set(reservations);
           this.onCancelForm();
+          alert('Reserva actualizada exitosamente');
         },
         error: (error) => {
-          console.error('Error updating reservation:', error);
+          console.error('ReservationsManagement: ❌ Error updating reservation:', error);
+          console.error('ReservationsManagement: Error status:', error.status);
+          console.error('ReservationsManagement: Error message:', error.message);
+          console.error('ReservationsManagement: Error error:', error.error);
+          console.error('ReservationsManagement: Error details:', error.error?.error);
+          
+          // Mostrar error específico del backend
+          const backendMessage = error.error?.message || error.error?.error || error.message || 'Error desconocido';
+          alert('Error al actualizar reserva: ' + backendMessage);
         }
       });
     } else {
       // Crear nueva reserva - API REAL
+      console.log('ReservationsManagement: Creando nueva reserva');
       this.reservationService.createReservation(reservationData).subscribe({
         next: (newReservation) => {
+          console.log('ReservationsManagement: ✅ Reserva creada exitosamente:', newReservation);
           this.reservations.set([...this.reservations(), newReservation]);
-          this.filteredReservations.set([...this.reservations(), newReservation]);
+          this.filteredReservations.set([...this.filteredReservations(), newReservation]);
           this.onCancelForm();
+          alert('Reserva creada exitosamente');
         },
         error: (error) => {
-          console.error('Error creating reservation:', error);
+          console.error('ReservationsManagement: ❌ Error creating reservation:', error);
+          console.error('ReservationsManagement: Error status:', error.status);
+          console.error('ReservationsManagement: Error message:', error.message);
+          console.error('ReservationsManagement: Error error:', error.error);
+          
+          const backendMessage = error.error?.message || error.error?.error || error.message || 'Error desconocido';
+          alert('Error al crear reserva: ' + backendMessage);
         }
       });
     }
@@ -200,52 +242,53 @@ export class ReservationsManagementComponent implements OnInit {
   onCancelForm(): void {
     this.showAddForm.set(false);
     this.editingReservation.set(null);
+    this.formData.set({});
   }
 
-  updateFormField(field: keyof Reservation, value: any): void {
+  updateFormField(field: string, value: any): void {
     const current = this.formData();
     this.formData.set({ ...current, [field]: value });
   }
 
+  getInputValue(event: any): any {
+    return event.target.value;
+  }
+
   getTotalReservations(): number {
-    return this.reservations().length;
+    return this.filteredReservations().length;
   }
 
   getActiveReservations(): number {
-    return this.reservations().filter(r => r.status === ReservationStatus.ACTIVE).length;
+    return this.filteredReservations().filter(r => r.status === 'ACTIVE').length;
   }
 
   getCompletedReservations(): number {
-    return this.reservations().filter(r => r.status === ReservationStatus.COMPLETED).length;
+    return this.filteredReservations().filter(r => r.status === 'COMPLETED').length;
   }
 
   getCancelledReservations(): number {
-    return this.reservations().filter(r => r.status === ReservationStatus.CANCELLED).length;
+    return this.filteredReservations().filter(r => r.status === 'CANCELLED').length;
   }
 
-  onBookChange(event: Event): void {
-    const bookId = (event.target as HTMLSelectElement).value;
-    const book = this.books().find(b => b.id === Number(bookId));
-    this.updateFormField('book', book || { id: 0 } as Book);
+  onBookChange(event: any): void {
+    const bookId = parseInt(event.target.value);
+    const book = this.books().find(b => b.id === bookId);
+    this.updateFormField('book', book);
   }
 
-  onUserChange(event: Event): void {
-    const userId = (event.target as HTMLSelectElement).value;
-    const user = this.users().find(u => u.id === Number(userId));
-    this.updateFormField('user', user || { id: 0 } as User);
-  }
-
-  getInputValue(event: Event): string {
-    return (event.target as HTMLInputElement).value;
+  onUserChange(event: any): void {
+    const userId = parseInt(event.target.value);
+    const user = this.users().find(u => u.id === userId);
+    this.updateFormField('user', user);
   }
 
   getStatusColor(status: string): string {
     switch (status) {
-      case ReservationStatus.ACTIVE:
+      case 'ACTIVE':
         return '#28a745';
-      case ReservationStatus.COMPLETED:
+      case 'COMPLETED':
         return '#007bff';
-      case ReservationStatus.CANCELLED:
+      case 'CANCELLED':
         return '#dc3545';
       default:
         return '#6c757d';
@@ -254,11 +297,11 @@ export class ReservationsManagementComponent implements OnInit {
 
   getStatusIcon(status: string): string {
     switch (status) {
-      case ReservationStatus.ACTIVE:
+      case 'ACTIVE':
         return '📋';
-      case ReservationStatus.COMPLETED:
+      case 'COMPLETED':
         return '✅';
-      case ReservationStatus.CANCELLED:
+      case 'CANCELLED':
         return '❌';
       default:
         return '📋';
@@ -266,10 +309,10 @@ export class ReservationsManagementComponent implements OnInit {
   }
 
   navigateToBooksManagement(): void {
-    this.router.navigate(['/admin/books-management']);
+    this.router.navigate(['/admin/books']);
   }
 
   navigateToUsersManagement(): void {
-    this.router.navigate(['/admin/users-management']);
+    this.router.navigate(['/admin/users']);
   }
 }

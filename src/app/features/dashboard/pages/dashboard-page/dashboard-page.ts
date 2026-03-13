@@ -3,11 +3,15 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { TipoUsuario } from '../../../../core/interfaces/user';
-import { ClearStorageUtil } from '../../../../core/utils/clear-storage.util';
+import { BookService } from '../../../../core/services/book.service';
+import { LoanService } from '../../../../core/services/loan.service';
+import { ReservationService } from '../../../../core/services/reservation.service';
+import { UserService } from '../../../../core/services/user.service';
+import { HeaderComponent } from '../../../../shared/components/header/header';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [CommonModule],
+  imports: [CommonModule, HeaderComponent],
   templateUrl: './dashboard-page.html',
   styleUrl: './dashboard-page.css',
   standalone: true
@@ -15,19 +19,26 @@ import { ClearStorageUtil } from '../../../../core/utils/clear-storage.util';
 export class DashboardPage implements OnInit {
   userName = signal('Usuario');
   userRole = signal<TipoUsuario | null>(null);
-  activeLoans = signal(3);
-  overdueLoans = signal(1);
-  reservedBooks = signal(2);
-  totalBooks = signal(150);
-  totalUsers = signal(45);
-  availableBooks = signal(120);
+  
+  // Estadísticas reales de la base de datos
+  totalBooks = signal(0);
+  availableBooks = signal(0);
+  totalUsers = signal(0);
+  activeLoans = signal(0);
+  overdueLoans = signal(0);
+  reservedBooks = signal(0);
+  totalReservations = signal(0);
   
   // Exponer TipoUsuario para el template
   TipoUsuario = TipoUsuario;
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private bookService: BookService,
+    private loanService: LoanService,
+    private reservationService: ReservationService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -35,6 +46,43 @@ export class DashboardPage implements OnInit {
     if (currentUser) {
       this.userName.set(currentUser.name);
       this.userRole.set(currentUser.tipoUsuario);
+    }
+    
+    // Cargar datos reales de la base de datos
+    this.loadRealData();
+  }
+
+  private async loadRealData(): Promise<void> {
+    try {
+      // Cargar todas las estadísticas en paralelo
+      const [books, loans, reservations, users] = await Promise.all([
+        this.bookService.getBooks().toPromise(),
+        this.loanService.getAllLoans().toPromise(),
+        this.reservationService.getAllReservations().toPromise(),
+        this.userService.getUsers().toPromise()
+      ]);
+
+      // Actualizar estadísticas
+      this.totalBooks.set(books?.length || 0);
+      this.availableBooks.set(books?.filter((book: any) => book.disponible).length || 0);
+      
+      this.activeLoans.set(loans?.filter((loan: any) => loan.status === 'ACTIVE').length || 0);
+      this.overdueLoans.set(loans?.filter((loan: any) => loan.status === 'LATE').length || 0);
+      
+      this.reservedBooks.set(reservations?.filter((res: any) => res.estado === 'ACTIVA').length || 0);
+      this.totalReservations.set(reservations?.length || 0);
+      this.totalUsers.set(users?.length || 0);
+      
+    } catch (error) {
+      console.error('Error cargando datos reales del dashboard:', error);
+      // En caso de error, mantener valores en 0
+      this.totalBooks.set(0);
+      this.availableBooks.set(0);
+      this.totalUsers.set(0);
+      this.activeLoans.set(0);
+      this.overdueLoans.set(0);
+      this.reservedBooks.set(0);
+      this.totalReservations.set(0);
     }
   }
 
@@ -98,17 +146,6 @@ export class DashboardPage implements OnInit {
 
   navigateToUsersManagement(): void {
     this.router.navigate(['/admin/users-management']);
-  }
-
-  clearAllData(): void {
-    if (confirm('¿Estás seguro de eliminar todos los datos locales? Esto borrará usuarios mock, libros, préstamos, reservas, cookies y forzará la recarga completa de la página.')) {
-      ClearStorageUtil.clearAndReload();
-      alert('✅ Todos los datos locales han sido eliminados. La página se recargará automáticamente.');
-    }
-  }
-
-  checkStorageData(): void {
-    ClearStorageUtil.checkStorage();
   }
 
   navigateToBooksManagement(): void {

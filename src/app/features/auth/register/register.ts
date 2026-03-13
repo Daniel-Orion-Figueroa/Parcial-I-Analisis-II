@@ -44,6 +44,12 @@ export class RegisterComponent {
     if (this.registerForm.valid) {
       this.isLoading.set(true);
       
+      // Limpiar cualquier sesión residual antes del registro
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+      
       const formData = this.registerForm.value;
       const userToRegister = {
         id: Date.now(), // ID único basado en timestamp
@@ -64,13 +70,15 @@ export class RegisterComponent {
   private saveNewUser(user: any): void {
     // Usar API real del AuthService
     this.authService.register(user).subscribe({
-      next: (registeredUser) => {
-        // El AuthService ya maneja el almacenamiento y actualización del estado
-        setTimeout(() => {
-          this.isLoading.set(false);
-          alert(`¡Registro exitoso! Bienvenido ${registeredUser.name} (${registeredUser.tipoUsuario})`);
-          this.router.navigate(['/dashboard']);
-        }, 1000);
+      next: (response) => {
+        console.log('RegisterComponent: Respuesta del registro:', response);
+        this.isLoading.set(false);
+        
+        // Mostrar mensaje de éxito
+        alert('¡Registro exitoso! Por favor, inicia sesión con tus credenciales.');
+        
+        // Redirigir al login para que inicie sesión
+        this.router.navigate(['/auth/login']);
       },
       error: (error) => {
         console.error('Error en registro:', error);

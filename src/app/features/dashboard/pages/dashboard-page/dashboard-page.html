@@ -1,24 +1,8 @@
-<div class="dashboard">
-  <header class="dashboard-header">
-    <div class="user-info">
-      <span class="role-icon">{{ getRoleIcon() }}</span>
-      <div>
-        <h1>¡Bienvenido, {{ userName() }}! 👋</h1>
-        <p>{{ getWelcomeMessage() }}</p>
-        <span class="user-role" [style.background-color]="getRoleColor()">
-          {{ getRoleDescription() }}
-        </span>
-      </div>
-    </div>
-    <button class="logout-btn" (click)="logout()">
-      <span class="logout-icon">🚪</span>
-      Cerrar Sesión
-    </button>
-  </header>
-
+<div class="dashboard-container">
   <!-- Dashboard para ESTUDIANTE -->
   @if (isStudent) {
     <section class="stats-section">
+      <h2 class="section-title">📊 Tu Panel de Estudiante</h2>
       <div class="stats-grid">
         <div class="stat-card stat-active">
           <div class="stat-icon">📚</div>
@@ -47,7 +31,7 @@
     </section>
 
     <section class="actions-section">
-      <h2>Acciones Rápidas</h2>
+      <h2 class="section-title">🚀 Acciones Rápidas</h2>
       <div class="actions-grid">
         <button (click)="navigateToBooks()" class="action-card action-books">
           <div class="action-icon">📖</div>
@@ -79,6 +63,7 @@
   <!-- Dashboard para DOCENTE -->
   @if (isTeacher) {
     <section class="stats-section">
+      <h2 class="section-title">👨‍🏫 Tu Portal Docente</h2>
       <div class="stats-grid">
         <div class="stat-card stat-active">
           <div class="stat-icon">📚</div>
@@ -107,7 +92,7 @@
     </section>
 
     <section class="actions-section">
-      <h2>Portal Docente</h2>
+      <h2 class="section-title">🎓 Herramientas Docentes</h2>
       <div class="actions-grid">
         <button (click)="navigateToBooks()" class="action-card action-books">
           <div class="action-icon">📖</div>
@@ -139,6 +124,7 @@
   <!-- Dashboard para ADMIN -->
   @if (isAdmin) {
     <section class="stats-section">
+      <h2 class="section-title">👑 Panel de Administración</h2>
       <div class="stats-grid">
         <div class="stat-card stat-total-books">
           <div class="stat-icon">📚</div>
@@ -175,7 +161,7 @@
     </section>
 
     <section class="actions-section">
-      <h2>Panel de Administración</h2>
+      <h2 class="section-title">🔧 Gestión del Sistema</h2>
       <div class="actions-grid">
         <button (click)="navigateToBooksManagement()" class="action-card action-books-management">
           <div class="action-icon">📚</div>
@@ -206,30 +192,6 @@
           <div class="action-content">
             <h3>Gestión de Reservas</h3>
             <p>Administra todas las reservas</p>
-          </div>
-        </button>
-      </div>
-    </section>
-  }
-
-  <!-- Botones de limpieza de datos (solo para desarrollo) -->
-  @if (userRole() === TipoUsuario.ADMIN) {
-    <section class="admin-tools">
-      <h2>🔧 Herramientas de Desarrollo</h2>
-      <div class="tools-grid">
-        <button (click)="checkStorageData()" class="tool-button tool-check">
-          <div class="tool-icon">🔍</div>
-          <div class="tool-content">
-            <h4>Ver Datos en Storage</h4>
-            <p>Revisa qué hay guardado en localStorage</p>
-          </div>
-        </button>
-        
-        <button (click)="clearAllData()" class="tool-button tool-clear">
-          <div class="tool-icon">🗑️</div>
-          <div class="tool-content">
-            <h4>Limpiar Todos los Datos</h4>
-            <p>Elimina usuarios mock, libros, préstamos y reservas</p>
           </div>
         </button>
       </div>

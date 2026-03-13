@@ -22,9 +22,11 @@ export class ReservationService {
    * Obtener todas las reservas (admin)
    */
   getAllReservations(): Observable<Reservation[]> {
-
+    const url = `${this.apiUrl}/reservations`;
+    console.log('ReservationService: Llamando a GET', url);
+    
     return this.http
-      .get<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}`)
+      .get<any>(url)
       .pipe(
         tap((response: any) => {
           console.log('ReservationService: Respuesta completa del backend:', response);
@@ -47,7 +49,6 @@ export class ReservationService {
           return result;
         })
       );
-
   }
 
   /**
@@ -99,11 +100,14 @@ export class ReservationService {
    * Actualizar reserva existente
    */
   updateReservation(id: number, reservation: Partial<Reservation>): Observable<Reservation> {
+    const url = `${this.apiUrl}/reservations/${id}`;
+    console.log('ReservationService: Llamando a PUT', url, 'con datos:', reservation);
+    
     return this.http
-      .put<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.GET_BY_ID}/${id}`, reservation)
+      .put<any>(url, reservation)
       .pipe(
         tap((response: any) => {
-          console.log('ReservationService: Actualizando reserva:', response);
+          console.log('ReservationService: Respuesta de actualización:', response);
           const updatedReservation = response.data || response;
           const reservations = this.reservationsSubject.value.map(r =>
             r.id === id ? updatedReservation : r
@@ -118,11 +122,16 @@ export class ReservationService {
    * Eliminar reserva
    */
   deleteReservation(id: number): Observable<void> {
+    const url = `${this.apiUrl}/reservations/${id}`;
+    console.log('ReservationService: Llamando a DELETE', url);
+    
     return this.http
-      .delete<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.GET_BY_ID}/${id}`)
+      .delete<any>(url)
       .pipe(
-        tap(() => {
+        tap((response: any) => {
+          console.log('ReservationService: Respuesta de eliminación:', response);
           console.log('ReservationService: Eliminando reserva con ID:', id);
+          // NO filtrar aquí, dejar que el componente recargue los datos
           const reservations = this.reservationsSubject.value.filter(r => r.id !== id);
           this.reservationsSubject.next(reservations);
         })

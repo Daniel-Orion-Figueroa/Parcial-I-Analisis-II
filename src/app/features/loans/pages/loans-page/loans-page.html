@@ -48,7 +48,7 @@
         [loan]="loan"
         [showActions]="true"
         (renew)="onRenewLoan($event)"
-        (returnBook)="onReturnLoan($event)"
+        (returnBook)="onReturnBook($event)"
         (viewDetails)="onViewLoanDetails($event)">
       </app-loan-card>
     }
@@ -65,4 +65,18 @@
       (action)="onSearch({ term: '', filter: '' })">
     </app-empty-state>
   }
+
+  <!-- Modal de Confirmación para Devolución -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogVisible()"
+    [isLoading]="isProcessing()"
+    title="Confirmar Devolución"
+    type="warning"
+    confirmText="Sí, Devolver"
+    cancelText="Cancelar"
+    [message]="confirmMessage()"
+    (confirm)="onConfirmDialogConfirm()"
+    (cancel)="onConfirmDialogClose()"
+    (close)="onConfirmDialogClose()">
+  </app-confirm-dialog>
 </div>

@@ -18,6 +18,8 @@
       <app-book-card 
         [book]="book" 
         [showActions]="true"
+        [showEdit]="false"
+        [showDelete]="false"
         (reserve)="onReserveBook($event)"
         (viewDetails)="onViewBookDetails($event)">
       </app-book-card>
@@ -34,4 +36,24 @@
       (action)="onSearch({ term: '', filter: '' })">
     </app-empty-state>
   }
+
+  <!-- Modal de Reserva -->
+  <app-reservation-modal
+    [book]="selectedBook()"
+    [isVisible]="isModalVisible()"
+    [isLoading]="isReserving()"
+    (close)="onModalClose()"
+    (confirm)="onModalConfirm($event)">
+  </app-reservation-modal>
+
+  <!-- Modal de Confirmación para Éxito -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogVisible()"
+    title="Reserva Exitosa"
+    type="success"
+    confirmText="Aceptar"
+    [message]="confirmMessage()"
+    (confirm)="onSuccessDialogClose()"
+    (close)="onSuccessDialogClose()">
+  </app-confirm-dialog>
 </div>

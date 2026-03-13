@@ -9,7 +9,7 @@
     <div class="stat-card">
       <div class="stat-icon">📚</div>
       <div class="stat-content">
-        <div class="stat-number">{{ getTotalLoans() }}</div>
+        <div class="stat-number">{{ loans().length }}</div>
         <div class="stat-label">Total Préstamos</div>
       </div>
     </div>
@@ -17,7 +17,7 @@
     <div class="stat-card active">
       <div class="stat-icon">📖</div>
       <div class="stat-content">
-        <div class="stat-number">{{ getActiveLoans() }}</div>
+        <div class="stat-number">{{ loans().filter(loan => loan.status === 'ACTIVE').length }}</div>
         <div class="stat-label">Préstamos Activos</div>
       </div>
     </div>
@@ -25,7 +25,7 @@
     <div class="stat-card overdue">
       <div class="stat-icon">⚠️</div>
       <div class="stat-content">
-        <div class="stat-number">{{ getOverdueLoans() }}</div>
+        <div class="stat-number">{{ loans().filter(loan => loan.status === 'LATE').length }}</div>
         <div class="stat-label">Préstamos Vencidos</div>
       </div>
     </div>
@@ -33,153 +33,58 @@
     <div class="stat-card returned">
       <div class="stat-icon">✅</div>
       <div class="stat-content">
-        <div class="stat-number">{{ getReturnedLoans() }}</div>
+        <div class="stat-number">{{ loans().filter(loan => loan.status === 'RETURNED').length }}</div>
         <div class="stat-label">Préstamos Devueltos</div>
       </div>
     </div>
   </div>
 
-  <!-- Acciones -->
-  <div class="actions-section">
-    <button class="btn btn-primary" (click)="onAddLoan()">
-      ➕ Nuevo Préstamo
-    </button>
-    
-    <div class="search-box">
-      <input 
-        type="text" 
-        placeholder="Buscar préstamos..." 
-        [value]="searchTerm()"
-        (input)="onSearch({ term: $event.target.value })"
-        class="search-input">
-    </div>
+  <!-- Búsqueda y filtros -->
+  <div class="search-section">
+    <app-search-bar 
+      placeholder="Buscar por título, autor o usuario..."
+      [filters]="['Activos', 'Vencidos', 'Devueltos']"
+      [showFilters]="true"
+      (search)="onSearch($event)">
+    </app-search-bar>
   </div>
 
-  <!-- Formulario de agregar/editar -->
-  @if (showAddForm()) {
-    <div class="form-overlay">
-      <div class="form-container">
-        <h2>{{ editingLoan() ? 'Editar Préstamo' : 'Agregar Nuevo Préstamo' }}</h2>
-        
-        <form class="loan-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="bookId">Libro *</label>
-              <select 
-                id="bookId"
-                [value]="formData().bookId"
-                (change)="updateFormField('bookId', getInputValue($event))"
-                required>
-                <option value="">Selecciona un libro</option>
-                @for (book of books(); track book.id) {
-                  <option [value]="book.id" [disabled]="!book.disponible && !editingLoan()">
-                    {{ book.title }} - {{ book.author }}
-                    @if (!book.disponible && !editingLoan()) {
-                      (No disponible)
-                    }
-                  </option>
-                }
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="userId">Usuario *</label>
-              <select 
-                id="userId"
-                [value]="formData().userId"
-                (change)="updateFormField('userId', getInputValue($event))"
-                required>
-                <option value="">Selecciona un usuario</option>
-                @for (user of users(); track user.id) {
-                  <option [value]="user.id">
-                    {{ user.name }} - {{ user.email }} ({{ user.tipoUsuario }})
-                  </option>
-                }
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="fechaPrestamo">Fecha de Préstamo *</label>
-              <input 
-                type="date" 
-                id="fechaPrestamo" 
-                [value]="formData().fechaPrestamo"
-                (input)="updateFormField('fechaPrestamo', getInputValue($event))"
-                required>
-            </div>
-            
-            <div class="form-group">
-              <label for="fechaDevolucion">Fecha de Devolución *</label>
-              <input 
-                type="date" 
-                id="fechaDevolucion" 
-                [value]="formData().fechaDevolucion"
-                (input)="updateFormField('fechaDevolucion', getInputValue($event))"
-                required>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="estado">Estado *</label>
-              <select 
-                id="estado"
-                [value]="formData().estado"
-                (change)="updateFormField('estado', getInputValue($event))"
-                required>
-                <option value="ACTIVO">📚 ACTIVO</option>
-                <option value="DEVUELTO">✅ DEVUELTO</option>
-                <option value="VENCIDO">⚠️ VENCIDO</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" (click)="onCancelForm()">
-              Cancelar
-            </button>
-            <button type="button" class="btn btn-primary" (click)="onSaveLoan()">
-              {{ editingLoan() ? 'Actualizar' : 'Guardar' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  }
-
   <!-- Lista de préstamos -->
-  <div class="loans-grid">
+  <div class="loans-container">
     @for (loan of filteredLoans(); track loan.id) {
       <div class="loan-card">
         <div class="loan-header">
           <div class="book-info">
-            <h3 class="book-title">{{ loan.bookTitle }}</h3>
-            <span class="loan-status" [style.background-color]="getStatusColor(loan.estado)">
-              {{ getStatusIcon(loan.estado) }} {{ loan.estado }}
+            <h3 class="book-title">{{ loan.book.title }}</h3>
+            <span class="loan-status" [class]="getStatusClass(loan.status)">
+              {{ getStatusText(loan.status) }}
             </span>
           </div>
         </div>
         
         <div class="loan-details">
           <p class="user-info">
-            <strong>👤 Usuario:</strong> {{ loan.userName }}
+            <strong>👤 Usuario:</strong> {{ loan.user.name }}
           </p>
           <p class="user-email">
-            <strong>📧 Email:</strong> {{ loan.userEmail }}
+            <strong>📧 Email:</strong> {{ loan.user.email }}
           </p>
           <p class="loan-dates">
-            <strong>📅 Préstamo:</strong> {{ loan.fechaPrestamo }}
+            <strong>📅 Préstamo:</strong> {{ loan.loanDate }}
           </p>
           <p class="loan-due-date">
-            <strong>📅 Devolución:</strong> {{ loan.fechaDevolucion }}
+            <strong>⏰ Tiempo restante:</strong> {{ getDaysRemaining(loan) }}
           </p>
         </div>
         
         <div class="loan-actions">
-          <button class="btn btn-sm btn-primary" (click)="onEditLoan(loan)">
-            ✏️ Editar
+          <button class="btn btn-sm btn-success" (click)="onReturnLoan(loan)" 
+                  [disabled]="loan.status === 'RETURNED'">
+            📚 Devolver
+          </button>
+          <button class="btn btn-sm btn-warning" (click)="onExtendLoan(loan)"
+                  [disabled]="loan.status === 'RETURNED'">
+            ⏰ Extender
           </button>
           <button class="btn btn-sm btn-danger" (click)="onDeleteLoan(loan)">
             🗑️ Eliminar
@@ -191,13 +96,27 @@
 
   <!-- Estado vacío -->
   @if (filteredLoans().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">📚</div>
-      <h3>No se encontraron préstamos</h3>
-      <p>No hay préstamos que coincidan con tu búsqueda</p>
-      <button class="btn btn-primary" (click)="onSearch({ term: '' })">
-        Limpiar búsqueda
-      </button>
-    </div>
+    <app-empty-state 
+      icon="📚"
+      title="No se encontraron préstamos"
+      message="No hay préstamos que coincidan con los filtros actuales"
+      [showAction]="true"
+      actionText="Limpiar filtros"
+      (action)="onSearch({ term: '', filter: '' })">
+    </app-empty-state>
   }
+
+  <!-- Modal de Confirmación -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogVisible()"
+    [isLoading]="isProcessing()"
+    title="Confirmar Acción"
+    type="warning"
+    confirmText="Sí, Confirmar"
+    cancelText="Cancelar"
+    [message]="confirmMessage()"
+    (confirm)="onConfirmDialogConfirm()"
+    (cancel)="onConfirmDialogClose()"
+    (close)="onConfirmDialogClose()">
+  </app-confirm-dialog>
 </div>

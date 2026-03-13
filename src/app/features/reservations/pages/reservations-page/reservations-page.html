@@ -27,12 +27,26 @@
 
   @if (filteredReservations().length === 0) {
     <app-empty-state 
-      icon="📋"
-      title="No se encontraron reservas"
-      message="No tienes reservas que coincidan con los filtros actuales"
+      icon="�"
+      title="No tienes reservas"
+      message="Explora nuestro catálogo y reserva tu primer libro"
       [showAction]="true"
-      actionText="Limpiar filtros"
-      (action)="onSearch({ term: '', filter: '' })">
+      actionText="Ir al Catálogo"
+      action="/books">
     </app-empty-state>
   }
+
+  <!-- Modal de Confirmación para Cancelar Reserva -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogVisible()"
+    [isLoading]="isCancelling()"
+    title="Cancelar Reserva"
+    type="warning"
+    confirmText="Sí, Cancelar"
+    cancelText="No, Mantener"
+    [message]="getCancelMessage()">
+    (confirm)="onConfirmDialogConfirm()"
+    (cancel)="onConfirmDialogClose()"
+    (close)="onConfirmDialogClose()">
+  </app-confirm-dialog>
 </div>

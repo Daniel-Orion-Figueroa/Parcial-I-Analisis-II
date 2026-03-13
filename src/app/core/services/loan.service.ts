@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints.constants';
-import { Loan } from '../interfaces/loan';
+import { Loan, CreateLoanRequest, UpdateLoanRequest, LoanStatus } from '../interfaces/loan';
 
 @Injectable({
   providedIn: 'root'
@@ -24,9 +24,17 @@ export class LoanService {
   getAllLoans(): Observable<Loan[]> {
 
     return this.http
-      .get<Loan[]>(`${this.apiUrl}${API_ENDPOINTS.LOANS.CREATE}`)
+      .get<any>(`${this.apiUrl}${API_ENDPOINTS.LOANS.CREATE}`)
       .pipe(
-        tap(loans => this.loansSubject.next(loans))
+        tap((response: any) => {
+          console.log('LoanService: Respuesta completa del backend:', response);
+          // El backend devuelve: { message: "...", data: [Loan[], ...] }
+          const loans = response.data || response; // Fallback por si acaso
+          console.log('LoanService: Préstamos extraídos:', loans);
+          this.loansSubject.next(loans);
+        }),
+        // Devolver solo el array de préstamos
+        map((response: any) => response.data || response)
       );
 
   }
@@ -37,9 +45,17 @@ export class LoanService {
   getLoansByUser(userId: number): Observable<Loan[]> {
 
     return this.http
-      .get<Loan[]>(`${this.apiUrl}${API_ENDPOINTS.LOANS.GET_BY_USER}/${userId}`)
+      .get<any>(`${this.apiUrl}${API_ENDPOINTS.LOANS.GET_BY_USER}/${userId}`)
       .pipe(
-        tap(loans => this.loansSubject.next(loans))
+        tap((response: any) => {
+          console.log('LoanService: Respuesta completa del backend (préstamos por usuario):', response);
+          // El backend devuelve: { message: "...", data: [Loan[], ...] }
+          const loans = response.data || response; // Fallback por si acaso
+          console.log('LoanService: Préstamos del usuario extraídos:', loans);
+          this.loansSubject.next(loans);
+        }),
+        // Devolver solo el array de préstamos
+        map((response: any) => response.data || response)
       );
 
   }
@@ -114,10 +130,43 @@ export class LoanService {
   }
 
   /**
-   * Obtener estado actual sin llamar API
+   * Crear préstamo desde reserva
    */
-  getLoansState(): Loan[] {
-    return this.loansSubject.value;
+  createLoanFromReservation(reservationId: number, dueDate: string): Observable<Loan> {
+    console.log(`LoanService: Creando préstamo desde reserva ${reservationId}`);
+    return this.http.post<Loan>(`${this.apiUrl}/loans/from-reservation/${reservationId}`, { dueDate });
+  }
+
+  /**
+   * Devolver un libro (marcar préstamo como RETURNED)
+   */
+  returnLoan(id: number): Observable<Loan> {
+    console.log(`LoanService: Devolviendo préstamo ${id}`);
+    return this.http.put<Loan>(`${this.apiUrl}/loans/return/${id}`, {})
+      .pipe(
+        tap(returnedLoan => {
+          const updatedList = this.loansSubject.value.map(l =>
+            l.id === id ? returnedLoan : l
+          );
+          this.loansSubject.next(updatedList);
+        })
+      );
+  }
+
+  /**
+   * Obtener préstamos activos
+   */
+  getActiveLoans(): Observable<Loan[]> {
+    console.log('LoanService: Obteniendo préstamos activos');
+    return this.http.get<Loan[]>(`${this.apiUrl}/loans/active`);
+  }
+
+  /**
+   * Obtener préstamos vencidos
+   */
+  getOverdueLoans(): Observable<Loan[]> {
+    console.log('LoanService: Obteniendo préstamos vencidos');
+    return this.http.get<Loan[]>(`${this.apiUrl}/loans/overdue`);
   }
 
 }

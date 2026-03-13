@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Reservation } from '../../../../core/interfaces/reservation';
 
 @Component({
   selector: 'app-reservation-card',
@@ -9,12 +10,12 @@ import { CommonModule } from '@angular/common';
   standalone: true
 })
 export class ReservationCard {
-  @Input() reservation: any;
+  @Input() reservation!: Reservation;
   @Input() compact = false;
   
-  @Output() cancel = new EventEmitter<any>();
-  @Output() borrow = new EventEmitter<any>();
-  @Output() viewDetails = new EventEmitter<any>();
+  @Output() cancel = new EventEmitter<Reservation>();
+  @Output() borrow = new EventEmitter<Reservation>();
+  @Output() viewDetails = new EventEmitter<Reservation>();
 
   onCancel(): void {
     this.cancel.emit(this.reservation);
@@ -30,13 +31,11 @@ export class ReservationCard {
 
   getStatusClass(): string {
     switch (this.reservation.status) {
-      case 'active':
+      case 'ACTIVE':
         return 'status-active';
-      case 'expired':
-        return 'status-expired';
-      case 'available':
-        return 'status-available';
-      case 'cancelled':
+      case 'COMPLETED':
+        return 'status-completed';
+      case 'CANCELLED':
         return 'status-cancelled';
       default:
         return '';
@@ -45,14 +44,12 @@ export class ReservationCard {
 
   getStatusText(): string {
     switch (this.reservation.status) {
-      case 'active':
-        return 'En espera';
-      case 'expired':
-        return 'Expirada';
-      case 'available':
-        return 'Disponible';
-      case 'cancelled':
-        return 'Cancelada';
+      case 'ACTIVE':
+        return '📋 Activa';
+      case 'COMPLETED':
+        return '✅ Completada';
+      case 'CANCELLED':
+        return '❌ Cancelada';
       default:
         return this.reservation.status;
     }
@@ -60,37 +57,21 @@ export class ReservationCard {
 
   getStatusIcon(): string {
     switch (this.reservation.status) {
-      case 'active':
+      case 'ACTIVE':
         return '⏳';
-      case 'expired':
-        return '⏰';
-      case 'available':
+      case 'COMPLETED':
         return '✅';
-      case 'cancelled':
+      case 'CANCELLED':
         return '❌';
       default:
         return '📋';
     }
   }
 
-  getDaysUntilExpiry(): number {
-    const expiryDate = new Date(this.reservation.expiryDate);
-    const today = new Date();
-    const diffTime = expiryDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  }
-
-  isExpiringSoon(): boolean {
-    const daysUntil = this.getDaysUntilExpiry();
-    return daysUntil <= 3 && daysUntil > 0;
-  }
-
   getCardClass(): string {
     const classes = ['reservation-card'];
     if (this.compact) classes.push('compact');
     if (this.reservation.status) classes.push(this.getStatusClass());
-    if (this.isExpiringSoon()) classes.push('expiring-soon');
     return classes.join(' ');
   }
 }

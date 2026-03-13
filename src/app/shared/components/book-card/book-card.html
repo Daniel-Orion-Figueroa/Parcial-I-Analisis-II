@@ -1,6 +1,6 @@
 <div class="book-card" [class]="getCardClass()">
   <div class="book-cover">
-    <img [src]="book?.coverImage || '/assets/default-book.jpg'" [alt]="book?.title || 'Book cover'" />
+    <img [src]="book?.imageUrl || '/assets/default-book.jpg'" [alt]="book?.title || 'Book cover'" />
     <div class="book-badge" [class]="getAvailabilityClass()">
       {{ getAvailabilityText() }}
     </div>
@@ -12,7 +12,7 @@
     <p class="book-isbn">ISBN: {{ book?.isbn || 'N/A' }}</p>
     
     <div class="book-meta">
-      <span class="book-year">{{ book?.year || 'N/A' }}</span>
+      <span class="book-year">{{ book?.publicationYear || 'N/A' }}</span>
       <span class="book-category">{{ book?.category || 'General' }}</span>
     </div>
     
@@ -25,27 +25,25 @@
   
   @if (showActions) {
     <div class="book-actions">
-      @if (book.availability === 'available') {
+      @if (book.availableQuantity > 0) {
         <button class="btn btn-primary" (click)="onReserve()">
           📚 Reservar
         </button>
-      } @else if (book.availability === 'borrowed') {
+      } @else {
         <button class="btn btn-secondary" (click)="onViewDetails()">
           👁️ Ver detalles
         </button>
-      } @else if (book.availability === 'reserved') {
-        <button class="btn btn-warning" (click)="onViewDetails()">
-          📋 En lista de espera
-        </button>
-      } @else {
-        <button class="btn btn-outline" (click)="onViewDetails()">
-          ℹ️ Ver detalles
+      }
+      
+      @if (isAdmin && showEdit) {
+        <button class="btn btn-outline" (click)="onEdit()">
+          ✏️ Editar
         </button>
       }
       
-      @if (!compact) {
-        <button class="btn btn-outline btn-sm" (click)="onViewDetails()">
-          📖 Detalles
+      @if (isAdmin && showDelete) {
+        <button class="btn btn-danger" (click)="onDelete()">
+          🗑️ Eliminar
         </button>
       }
     </div>
@@ -53,14 +51,9 @@
   
   @if (compact) {
     <div class="compact-actions">
-      <button class="btn-icon" (click)="onViewDetails()" title="Ver detalles">
-        👁️
+      <button class="btn btn-outline btn-sm" (click)="onViewDetails()">
+        📖 Detalles
       </button>
-      @if (book.availability === 'available') {
-        <button class="btn-icon btn-primary" (click)="onReserve()" title="Reservar">
-          📚
-        </button>
-      }
     </div>
   }
 </div>

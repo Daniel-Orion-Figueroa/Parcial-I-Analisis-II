@@ -32,12 +32,29 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #dc3545;
-  color: white;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
+}
+
+/* Etiquetas de disponibilidad */
+.available-green {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.unavailable-red {
+  background-color: #fecaca;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.unknown {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
 }
 
 .book-info {

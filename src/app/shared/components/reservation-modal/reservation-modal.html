@@ -1,0 +1,67 @@
+<div class="modal-backdrop" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 class="modal-title">📚 Confirmar Reserva</h2>
+      <button class="modal-close" (click)="onClose()" aria-label="Cerrar">
+        ✕
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="book">
+      <div class="book-info">
+        <div class="book-cover">
+          <img [src]="book.imageUrl || '/assets/default-book.jpg'" [alt]="book.title" />
+        </div>
+        
+        <div class="book-details">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <p class="book-author">por {{ book.author }}</p>
+          <p class="book-isbn">ISBN: {{ book.isbn }}</p>
+          
+          <div class="availability-info">
+            <span class="availability-badge" [class]="getAvailabilityClass()">
+              {{ getAvailabilityText() }}
+            </span>
+            <p class="category">{{ book.category }}</p>
+          </div>
+          
+          @if (book.description) {
+            <p class="book-description">
+              {{ book.description.length > 150 ? book.description.substring(0, 150) + '...' : book.description }}
+            </p>
+          }
+        </div>
+      </div>
+      
+      <div class="reservation-details">
+        <h4>Detalles de la Reserva</h4>
+        <div class="detail-item">
+          <span class="label">📅 Fecha de reserva:</span>
+          <span class="value">{{ todayDate }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">👤 Usuario:</span>
+          <span class="value">Usuario actual</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">📚 Estado:</span>
+          <span class="value status-active">Activa</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="onClose()" [disabled]="isLoading">
+        Cancelar
+      </button>
+      <button class="btn btn-primary" (click)="onConfirm()" [disabled]="isLoading">
+        @if (isLoading) {
+          <span class="spinner"></span>
+          Reservando...
+        } @else {
+          📚 Confirmar Reserva
+        }
+      </button>
+    </div>
+  </div>
+</div>

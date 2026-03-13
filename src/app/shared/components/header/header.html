@@ -1,0 +1,85 @@
+<header class="main-header">
+  <div class="header-container">
+    <!-- Logo y título -->
+    <div class="header-brand">
+      <div class="logo">
+        <span class="logo-icon">📚</span>
+        <span class="logo-text">Biblioteca Digital</span>
+      </div>
+    </div>
+
+    <!-- Información del usuario -->
+    <div class="header-user">
+      <div class="user-info">
+        <span class="role-icon">{{ getRoleIcon() }}</span>
+        <div class="user-details">
+          <span class="user-name">{{ userName() }}</span>
+          <span class="user-role" [style.background-color]="getRoleColor()">
+            {{ getRoleDescription() }}
+          </span>
+        </div>
+      </div>
+      
+      <!-- Botón de cerrar sesión -->
+      <button class="logout-btn" (click)="logout()">
+        <span class="logout-icon">🚪</span>
+        <span class="logout-text">Cerrar Sesión</span>
+      </button>
+    </div>
+
+    <!-- Menú móvil -->
+    <button class="mobile-menu-btn" (click)="toggleMenu()">
+      <span class="hamburger-icon">☰</span>
+    </button>
+  </div>
+
+  <!-- Menú de navegación móvil -->
+  @if (isMenuOpen()) {
+    <div class="mobile-menu" (click)="closeMenu()">
+      <div class="menu-content" (click)="$event.stopPropagation()">
+        <button class="menu-item" (click)="navigateToDashboard()">
+          <span class="menu-icon">🏠</span>
+          Dashboard
+        </button>
+        
+        <button class="menu-item" (click)="navigateToBooks()">
+          <span class="menu-icon">📖</span>
+          Libros
+        </button>
+        
+        <button class="menu-item" (click)="navigateToLoans()">
+          <span class="menu-icon">📚</span>
+          Préstamos
+        </button>
+        
+        <button class="menu-item" (click)="navigateToReservations()">
+          <span class="menu-icon">📋</span>
+          Reservas
+        </button>
+        
+        @if (isAdmin) {
+          <div class="menu-divider"></div>
+          <button class="menu-item" (click)="navigateToBooksManagement()">
+            <span class="menu-icon">📚</span>
+            Gestión de Libros
+          </button>
+          
+          <button class="menu-item" (click)="navigateToUsersManagement()">
+            <span class="menu-icon">👥</span>
+            Gestión de Usuarios
+          </button>
+          
+          <button class="menu-item" (click)="navigateToLoansManagement()">
+            <span class="menu-icon">📚</span>
+            Gestión de Préstamos
+          </button>
+          
+          <button class="menu-item" (click)="navigateToReservationsManagement()">
+            <span class="menu-icon">📋</span>
+            Gestión de Reservas
+          </button>
+        }
+      </div>
+    </div>
+  }
+</header>

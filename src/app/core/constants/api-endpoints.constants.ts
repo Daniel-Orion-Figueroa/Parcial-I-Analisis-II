@@ -14,7 +14,8 @@ export const API_ENDPOINTS = {
     RESERVATIONS: {
     CREATE: '/reservations',
     GET_BY_USER: '/reservations/user',
-    GET_BY_ID: '/reservations'
+    GET_BY_ID: '/reservations',
+    DELETE: '/reservations'
     },
 
     LOANS: {
