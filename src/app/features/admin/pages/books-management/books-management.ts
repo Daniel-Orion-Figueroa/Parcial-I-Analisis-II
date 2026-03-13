@@ -92,9 +92,11 @@ export class BooksManagement implements OnInit {
   }
 
   onEditBook(book: Book): void {
+    console.log('BooksManagement onEditBook: Libro seleccionado:', book);
     this.editingBook.set(book);
     this.showAddForm.set(true);
     this.formData.set({ ...book });
+    console.log('BooksManagement onEditBook: FormData establecido:', this.formData());
   }
 
   onDeleteBook(book: Book): void {
@@ -115,9 +117,15 @@ export class BooksManagement implements OnInit {
   }
 
   onSaveBook(): void {
+    console.log('BooksManagement onSaveBook: editingBook:', this.editingBook());
+    console.log('BooksManagement onSaveBook: formData:', this.formData());
+    
     if (this.editingBook()) {
       // Editar libro existente - API REAL
-      this.bookService.updateBook(this.editingBook()!.id, this.formData()).subscribe({
+      const bookId = this.editingBook()!.id;
+      console.log('BooksManagement onSaveBook: ID del libro a editar:', bookId);
+      
+      this.bookService.updateBook(bookId, this.formData()).subscribe({
         next: (updatedBook) => {
           const books = this.books().map(b =>
             b.id === updatedBook.id ? updatedBook : b
@@ -132,6 +140,7 @@ export class BooksManagement implements OnInit {
       });
     } else {
       // Crear nuevo libro - API REAL
+      console.log('BooksManagement onSaveBook: Creando nuevo libro con datos:', this.formData());
       this.bookService.createBook(this.formData()).subscribe({
         next: (newBook) => {
           this.books.set([...this.books(), newBook]);

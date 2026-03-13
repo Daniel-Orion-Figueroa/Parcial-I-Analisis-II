@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { User } from '../interfaces/user';
@@ -22,7 +22,7 @@ export class UserService {
    * Obtiene todos los usuarios.
    * @returns {Observable<User[]>} Una observable que emite un arreglo de usuarios.
    */
-  getUsers(): Observable<any> {
+  getUsers(): Observable<User[]> {
     return this.http
       .get<any>(`${this.apiUrl}/users`)
       .pipe(
@@ -32,7 +32,9 @@ export class UserService {
           const users = response.data || response; // Fallback por si acaso
           console.log('UserService: Usuarios extraídos:', users);
           this.usersSubject.next(users);
-        })
+        }),
+        // Devolver solo el array de usuarios
+        map((response: any) => response.data || response)
       );
   }
 

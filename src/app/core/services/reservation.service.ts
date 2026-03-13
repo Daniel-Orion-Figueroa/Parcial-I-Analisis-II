@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { API_ENDPOINTS } from '../constants/api-endpoints.constants';
@@ -24,9 +24,28 @@ export class ReservationService {
   getAllReservations(): Observable<Reservation[]> {
 
     return this.http
-      .get<Reservation[]>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}`)
+      .get<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}`)
       .pipe(
-        tap(reservations => this.reservationsSubject.next(reservations))
+        tap((response: any) => {
+          console.log('ReservationService: Respuesta completa del backend:', response);
+          console.log('ReservationService: Status:', response.status);
+          console.log('ReservationService: Response type:', typeof response);
+          
+          // El backend devuelve: { message: "...", data: [Reservation[], ...] }
+          const reservations = response.data || response;
+          console.log('ReservationService: Reservas extraídas:', reservations);
+          console.log('ReservationService: Reservas type:', typeof reservations);
+          console.log('ReservationService: Reservas is array?', Array.isArray(reservations));
+          
+          this.reservationsSubject.next(reservations);
+        }),
+        // Devolver solo el array de reservas
+        map((response: any) => {
+          console.log('ReservationService: Mapeando respuesta:', response);
+          const result = response.data || response;
+          console.log('ReservationService: Resultado final:', result);
+          return result;
+        })
       );
 
   }
@@ -37,86 +56,76 @@ export class ReservationService {
   getReservationsByUser(userId: number): Observable<Reservation[]> {
 
     return this.http
-      .get<Reservation[]>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.GET_BY_USER}/${userId}`)
+      .get<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.GET_BY_USER}/${userId}`)
       .pipe(
-        tap(reservations => this.reservationsSubject.next(reservations))
+        tap((response: any) => {
+          console.log('ReservationService: Reservas por usuario:', response);
+          const reservations = response.data || response;
+          this.reservationsSubject.next(reservations);
+        }),
+        map((response: any) => response.data || response)
       );
-
   }
 
   /**
    * Obtener reserva por ID
    */
   getReservationById(id: number): Observable<Reservation> {
-
-    return this.http.get<Reservation>(
-      `${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}/${id}`
-    );
-
+    return this.http
+      .get<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.GET_BY_ID}/${id}`)
+      .pipe(
+        map((response: any) => response.data || response)
+      );
   }
 
   /**
-   * Crear reserva
+   * Crear nueva reserva
    */
   createReservation(reservation: Partial<Reservation>): Observable<Reservation> {
-
     return this.http
-      .post<Reservation>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}`, reservation)
+      .post<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}`, reservation)
       .pipe(
-        tap(newReservation => {
-
-          const current = this.reservationsSubject.value;
-          this.reservationsSubject.next([...current, newReservation]);
-
-        })
+        tap((response: any) => {
+          console.log('ReservationService: Creando reserva:', response);
+          const newReservation = response.data || response;
+          const currentReservations = this.reservationsSubject.value;
+          this.reservationsSubject.next([...currentReservations, newReservation]);
+        }),
+        map((response: any) => response.data || response)
       );
-
   }
 
   /**
-   * Actualizar reserva (aprobar / rechazar / modificar)
+   * Actualizar reserva existente
    */
   updateReservation(id: number, reservation: Partial<Reservation>): Observable<Reservation> {
-
     return this.http
-      .put<Reservation>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}/${id}`, reservation)
+      .put<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.GET_BY_ID}/${id}`, reservation)
       .pipe(
-        tap(updated => {
-
-          const updatedList = this.reservationsSubject.value.map(r =>
-            r.id === id ? updated : r
+        tap((response: any) => {
+          console.log('ReservationService: Actualizando reserva:', response);
+          const updatedReservation = response.data || response;
+          const reservations = this.reservationsSubject.value.map(r =>
+            r.id === id ? updatedReservation : r
           );
-
-          this.reservationsSubject.next(updatedList);
-
-        })
+          this.reservationsSubject.next(reservations);
+        }),
+        map((response: any) => response.data || response)
       );
-
   }
 
   /**
-   * Eliminar o cancelar reserva
+   * Eliminar reserva
    */
   deleteReservation(id: number): Observable<void> {
-
     return this.http
-      .delete<void>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.CREATE}/${id}`)
+      .delete<any>(`${this.apiUrl}${API_ENDPOINTS.RESERVATIONS.GET_BY_ID}/${id}`)
       .pipe(
         tap(() => {
-
-          const filtered = this.reservationsSubject.value.filter(r => r.id !== id);
-          this.reservationsSubject.next(filtered);
-
+          console.log('ReservationService: Eliminando reserva con ID:', id);
+          const reservations = this.reservationsSubject.value.filter(r => r.id !== id);
+          this.reservationsSubject.next(reservations);
         })
       );
-
   }
-
-  /**
-   * Obtener estado actual sin llamar API
-   */
-  getReservationsState(): Reservation[] {
-    return this.reservationsSubject.value;
-  }
-
 }

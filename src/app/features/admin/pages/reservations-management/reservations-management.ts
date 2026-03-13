@@ -3,32 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder } from '@angular/forms';
 
-interface Reservation {
-  id: number;
-  bookId: number;
-  bookTitle: string;
-  userId: number;
-  userName: string;
-  userEmail: string;
-  fechaReserva: string;
-  fechaExpiracion: string;
-  estado: 'ACTIVA' | 'COMPLETADA' | 'CANCELADA' | 'EXPIRADA';
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  tipoUsuario: string;
-}
-
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  isbn: string;
-  disponible: boolean;
-}
+import { Reservation, ReservationStatus } from '../../../../core/interfaces/reservation';
+import { User } from '../../../../core/interfaces/user';
+import { Book } from '../../../../core/interfaces/book';
+import { ReservationService } from '../../../../core/services/reservation.service';
+import { UserService } from '../../../../core/services/user.service';
+import { BookService } from '../../../../core/services/book.service';
 
 @Component({
   selector: 'app-reservations-management',
@@ -46,11 +26,17 @@ export class ReservationsManagementComponent implements OnInit {
   editingReservation = signal<Reservation | null>(null);
   formData = signal<Partial<Reservation>>({});
 
-  // Mock data
+  // Datos reales de usuarios y libros
   users = signal<User[]>([]);
   books = signal<Book[]>([]);
 
-  constructor(private fb: FormBuilder, private router: Router) {}
+  constructor(
+    private fb: FormBuilder, 
+    private router: Router,
+    private reservationService: ReservationService,
+    private userService: UserService,
+    private bookService: BookService
+  ) {}
 
   ngOnInit(): void {
     this.loadReservations();
@@ -61,71 +47,62 @@ export class ReservationsManagementComponent implements OnInit {
   loadReservations(): void {
     this.isLoading.set(true);
     
-    // Mock data
-    const mockReservations: Reservation[] = [
-      {
-        id: 1,
-        bookId: 1,
-        bookTitle: 'Cien años de soledad',
-        userId: 1,
-        userName: 'Juan Pérez',
-        userEmail: 'juan@university.edu',
-        fechaReserva: '2024-01-15',
-        fechaExpiracion: '2024-01-22',
-        estado: 'ACTIVA'
+    // Cargar reservaciones desde la API REAL
+    this.reservationService.getAllReservations().subscribe({
+      next: (reservations) => {
+        console.log('ReservationsManagement: Reservas cargadas:', reservations);
+        this.reservations.set(reservations);
+        this.filteredReservations.set(reservations);
+        this.isLoading.set(false);
       },
-      {
-        id: 2,
-        bookId: 2,
-        bookTitle: 'Don Quijote',
-        userId: 2,
-        userName: 'María García',
-        userEmail: 'maria@university.edu',
-        fechaReserva: '2024-01-10',
-        fechaExpiracion: '2024-01-17',
-        estado: 'COMPLETADA'
-      },
-      {
-        id: 3,
-        bookId: 3,
-        bookTitle: '1984',
-        userId: 3,
-        userName: 'Carlos Admin',
-        userEmail: 'admin@university.edu',
-        fechaReserva: '2024-01-05',
-        fechaExpiracion: '2024-01-12',
-        estado: 'EXPIRADA'
+      error: (error) => {
+        console.error('Error loading reservations:', error);
+        this.isLoading.set(false);
       }
-    ];
-
-    setTimeout(() => {
-      this.reservations.set(mockReservations);
-      this.filteredReservations.set(mockReservations);
-      this.isLoading.set(false);
-    }, 500);
+    });
   }
 
   loadUsers(): void {
-    // Mock users
-    const mockUsers: User[] = [
-      { id: 1, name: 'Juan Pérez', email: 'juan@university.edu', tipoUsuario: 'ESTUDIANTE' },
-      { id: 2, name: 'María García', email: 'maria@university.edu', tipoUsuario: 'DOCENTE' },
-      { id: 3, name: 'Carlos Admin', email: 'admin@university.edu', tipoUsuario: 'ADMIN' },
-      { id: 4, name: 'Ana Estudiante', email: 'ana@university.edu', tipoUsuario: 'ESTUDIANTE' }
-    ];
-    this.users.set(mockUsers);
+    // Cargar usuarios desde la API REAL
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        console.log('ReservationsManagement: Usuarios cargados:', users);
+        this.users.set(users);
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        console.error('Error details:', error.status, error.statusText);
+        
+        // Si hay error de serialización o 403, mostrar mensaje claro
+        if (error.status === 200 && error.statusText === 'Unknown Error') {
+          alert('Error de serialización en el backend al cargar usuarios. Hay referencias circulares en las entidades.');
+          this.users.set([]);
+        } else if (error.status === 403) {
+          alert('Error 403 Forbidden - No tienes permisos para cargar usuarios. Verifica tu token de autenticación.');
+          this.users.set([]);
+        }
+      }
+    });
   }
 
   loadBooks(): void {
-    // Mock books
-    const mockBooks: Book[] = [
-      { id: 1, title: 'Cien años de soledad', author: 'Gabriel García Márquez', isbn: '978-0-06-088328-7', disponible: false },
-      { id: 2, title: 'Don Quijote', author: 'Miguel de Cervantes', isbn: '978-0-14-243723-4', disponible: true },
-      { id: 3, title: '1984', author: 'George Orwell', isbn: '978-0-452-28423-4', disponible: true },
-      { id: 4, title: 'El Principito', author: 'Antoine de Saint-Exupéry', isbn: '978-0-15-601219-5', disponible: true },
-      { id: 5, title: 'Orgullo y Prejuicio', author: 'Jane Austen', isbn: '978-0-14-143951-8', disponible: true }
-    ];
-    this.books.set(mockBooks);
+    // Cargar libros desde la API REAL
+    this.bookService.getBooks().subscribe({
+      next: (books) => {
+        console.log('ReservationsManagement: Libros cargados:', books);
+        this.books.set(books);
+      },
+      error: (error) => {
+        console.error('Error loading books:', error);
+        console.error('Error details:', error.status, error.statusText);
+        
+        // Si hay error de serialización, mostrar mensaje claro
+        if (error.status === 200 && error.statusText === 'Unknown Error') {
+          alert('Error de serialización en el backend al cargar libros. Hay referencias circulares en las entidades.');
+          this.books.set([]);
+        }
+      }
+    });
   }
 
   onSearch(searchData: { term: string }): void {
@@ -133,10 +110,10 @@ export class ReservationsManagementComponent implements OnInit {
     this.searchTerm.set(term);
     
     const filtered = this.reservations().filter(reservation => 
-      reservation.bookTitle.toLowerCase().includes(term) ||
-      reservation.userName.toLowerCase().includes(term) ||
-      reservation.userEmail.toLowerCase().includes(term) ||
-      reservation.estado.toLowerCase().includes(term)
+      reservation.book.title.toLowerCase().includes(term) ||
+      reservation.user.name.toLowerCase().includes(term) ||
+      reservation.user.email.toLowerCase().includes(term) ||
+      reservation.status.toLowerCase().includes(term)
     );
     
     this.filteredReservations.set(filtered);
@@ -145,120 +122,154 @@ export class ReservationsManagementComponent implements OnInit {
   onAddReservation(): void {
     this.editingReservation.set(null);
     this.formData.set({
-      bookId: 0,
-      userId: 0,
-      fechaReserva: new Date().toISOString().split('T')[0],
-      fechaExpiracion: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      estado: 'ACTIVA'
+      book: { id: 0 } as Book,
+      user: { id: 0 } as User,
+      reservationDate: new Date().toISOString().split('T')[0],
+      status: ReservationStatus.ACTIVE
     });
     this.showAddForm.set(true);
   }
 
   onEditReservation(reservation: Reservation): void {
+    console.log('ReservationsManagement: Editando reserva:', reservation);
     this.editingReservation.set(reservation);
-    this.formData.set({ ...reservation });
     this.showAddForm.set(true);
-  }
-
-  onSaveReservation(): void {
-    if (this.editingReservation()) {
-      // Edit existing reservation
-      const updatedReservations = this.reservations().map(reservation => 
-        reservation.id === this.editingReservation()!.id 
-          ? { ...this.formData(), id: reservation.id } as Reservation
-          : reservation
-      );
-      this.reservations.set(updatedReservations);
-    } else {
-      // Add new reservation
-      const newReservation: Reservation = {
-        id: Date.now(),
-        bookId: this.formData().bookId!,
-        bookTitle: this.books().find(b => b.id === this.formData().bookId)?.title || '',
-        userId: this.formData().userId!,
-        userName: this.users().find(u => u.id === this.formData().userId)?.name || '',
-        userEmail: this.users().find(u => u.id === this.formData().userId)?.email || '',
-        fechaReserva: this.formData().fechaReserva!,
-        fechaExpiracion: this.formData().fechaExpiracion!,
-        estado: this.formData().estado as 'ACTIVA' | 'COMPLETADA' | 'CANCELADA' | 'EXPIRADA'
-      };
-      this.reservations.set([...this.reservations(), newReservation]);
-    }
-    
-    this.onCancelForm();
-    this.onSearch({ term: this.searchTerm() });
+    this.formData.set({ ...reservation });
   }
 
   onDeleteReservation(reservation: Reservation): void {
-    if (confirm(`¿Estás seguro de eliminar la reserva de "${reservation.bookTitle}" para ${reservation.userName}?`)) {
-      const updatedReservations = this.reservations().filter(r => r.id !== reservation.id);
-      this.reservations.set(updatedReservations);
-      this.onSearch({ term: this.searchTerm() });
+    if (confirm(`¿Estás seguro de eliminar la reserva de "${reservation.book.title}"?`)) {
+      // ELIMINAR CON API REAL
+      this.reservationService.deleteReservation(reservation.id).subscribe({
+        next: () => {
+          const currentReservations = this.reservations().filter(r => r.id !== reservation.id);
+          this.reservations.set(currentReservations);
+          this.filteredReservations.set(currentReservations);
+          alert('Reserva eliminada exitosamente');
+        },
+        error: (error) => {
+          console.error('Error deleting reservation:', error);
+        }
+      });
+    }
+  }
+
+  onSaveReservation(): void {
+    console.log('ReservationsManagement: Guardando reserva:', this.formData());
+    
+    // Preparar datos para el backend - solo IDs y campos simples
+    const reservationData = {
+      bookId: this.formData().book?.id || 0,
+      userId: this.formData().user?.id || 0,
+      reservationDate: this.formData().reservationDate || new Date().toISOString().split('T')[0],
+      status: (this.formData().status || 'ACTIVE') as ReservationStatus
+    };
+    
+    console.log('ReservationsManagement: Datos a enviar al backend:', reservationData);
+    
+    if (this.editingReservation()) {
+      // Editar reserva existente - API REAL
+      this.reservationService.updateReservation(this.editingReservation()!.id, reservationData).subscribe({
+        next: (updatedReservation) => {
+          const reservations = this.reservations().map(r =>
+            r.id === updatedReservation.id ? updatedReservation : r
+          );
+          this.reservations.set(reservations);
+          this.filteredReservations.set(reservations);
+          this.onCancelForm();
+        },
+        error: (error) => {
+          console.error('Error updating reservation:', error);
+        }
+      });
+    } else {
+      // Crear nueva reserva - API REAL
+      this.reservationService.createReservation(reservationData).subscribe({
+        next: (newReservation) => {
+          this.reservations.set([...this.reservations(), newReservation]);
+          this.filteredReservations.set([...this.reservations(), newReservation]);
+          this.onCancelForm();
+        },
+        error: (error) => {
+          console.error('Error creating reservation:', error);
+        }
+      });
     }
   }
 
   onCancelForm(): void {
     this.showAddForm.set(false);
     this.editingReservation.set(null);
-    this.formData.set({});
   }
 
-  updateFormField(field: string, value: any): void {
-    this.formData.update(current => ({ ...current, [field]: value }));
+  updateFormField(field: keyof Reservation, value: any): void {
+    const current = this.formData();
+    this.formData.set({ ...current, [field]: value });
   }
 
-  getInputValue(event: any): string {
-    return event?.target?.value || '';
-  }
-
-  // Statistics
   getTotalReservations(): number {
     return this.reservations().length;
   }
 
   getActiveReservations(): number {
-    return this.reservations().filter(reservation => reservation.estado === 'ACTIVA').length;
+    return this.reservations().filter(r => r.status === ReservationStatus.ACTIVE).length;
   }
 
   getCompletedReservations(): number {
-    return this.reservations().filter(reservation => reservation.estado === 'COMPLETADA').length;
-  }
-
-  getExpiredReservations(): number {
-    return this.reservations().filter(reservation => reservation.estado === 'EXPIRADA').length;
+    return this.reservations().filter(r => r.status === ReservationStatus.COMPLETED).length;
   }
 
   getCancelledReservations(): number {
-    return this.reservations().filter(reservation => reservation.estado === 'CANCELADA').length;
+    return this.reservations().filter(r => r.status === ReservationStatus.CANCELLED).length;
   }
 
-  getStatusColor(estado: string): string {
-    switch (estado) {
-      case 'ACTIVA':
+  onBookChange(event: Event): void {
+    const bookId = (event.target as HTMLSelectElement).value;
+    const book = this.books().find(b => b.id === Number(bookId));
+    this.updateFormField('book', book || { id: 0 } as Book);
+  }
+
+  onUserChange(event: Event): void {
+    const userId = (event.target as HTMLSelectElement).value;
+    const user = this.users().find(u => u.id === Number(userId));
+    this.updateFormField('user', user || { id: 0 } as User);
+  }
+
+  getInputValue(event: Event): string {
+    return (event.target as HTMLInputElement).value;
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case ReservationStatus.ACTIVE:
         return '#28a745';
-      case 'COMPLETADA':
+      case ReservationStatus.COMPLETED:
         return '#007bff';
-      case 'CANCELADA':
-        return '#6c757d';
-      case 'EXPIRADA':
+      case ReservationStatus.CANCELLED:
         return '#dc3545';
       default:
         return '#6c757d';
     }
   }
 
-  getStatusIcon(estado: string): string {
-    switch (estado) {
-      case 'ACTIVA':
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case ReservationStatus.ACTIVE:
         return '📋';
-      case 'COMPLETADA':
+      case ReservationStatus.COMPLETED:
         return '✅';
-      case 'CANCELADA':
+      case ReservationStatus.CANCELLED:
         return '❌';
-      case 'EXPIRADA':
-        return '⏰';
       default:
         return '📋';
     }
+  }
+
+  navigateToBooksManagement(): void {
+    this.router.navigate(['/admin/books-management']);
+  }
+
+  navigateToUsersManagement(): void {
+    this.router.navigate(['/admin/users-management']);
   }
 }
